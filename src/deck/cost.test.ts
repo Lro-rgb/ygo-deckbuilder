@@ -33,8 +33,9 @@ test('leeres Deck kostet nichts', () => {
 
 test('jede Kopie kostet einzeln, über alle Zonen', () => {
   const kosten = deckCost({ main: [1, 1, 2], extra: [1], side: [2] }, byId)
-  // Getrennte Töpfe: die drei UR landen nicht im selben Konto wie die zwei N.
-  assert.deepEqual(kosten.cp, { N: 30 * 2, R: 0, SR: 0, UR: 300 * 3 })
+  // Getrennte Töpfe: gleicher Preis je Kopie, aber die drei UR landen nicht
+  // im selben Konto wie die zwei N.
+  assert.deepEqual(kosten.cp, { N: 30 * 2, R: 0, SR: 0, UR: 30 * 3 })
   assert.equal(Number(kosten.euro.toFixed(2)), 0.34 * 3 + 0.1 * 2)
 })
 
@@ -48,6 +49,6 @@ test('fehlende Angaben werden gezählt, nicht als null gerechnet', () => {
 })
 
 test('Tooltip nennt Seltenheit, CP und Preis', () => {
-  assert.equal(cardCostLabel(ur), '300 UR-CP · 0.34 €')
+  assert.equal(cardCostLabel(ur), '30 UR-CP · 0.34 €')
   assert.equal(cardCostLabel(nurPapier), 'nicht in Master Duel · 12.50 €')
 })

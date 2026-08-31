@@ -2,11 +2,11 @@ import type { Card, MdRarity } from '../data/types.ts'
 import type { Deck } from './deck.ts'
 
 /**
- * Was eine Kopie in Master Duel zu erstellen kostet. N und R kosten dasselbe,
- * das ist im Spiel so und kein Tippfehler. Zerlegen bringt weniger zurück,
- * hier geht es aber ums Bauen.
+ * Herstellen kostet in Master Duel unabhängig von der Seltenheit 30 CP — aber
+ * eben 30 CP der passenden Sorte. Nicht die Höhe unterscheidet die Stufen,
+ * sondern der Topf. (Zerlegen bringt 10 CP derselben Sorte zurück.)
  */
-export const CRAFT_CP: Record<MdRarity, number> = { N: 30, R: 30, SR: 100, UR: 300 }
+export const CRAFT_CP = 30
 
 export interface DeckCost {
   /**
@@ -38,7 +38,7 @@ export function deckCost(deck: Deck, byId: Map<number, Card>): DeckCost {
       continue
     }
     if (card.md === undefined) kosten.ohneMd++
-    else kosten.cp[card.md] += CRAFT_CP[card.md]
+    else kosten.cp[card.md] += CRAFT_CP
     if (card.price === undefined) kosten.ohnePreis++
     else kosten.euro += card.price
   }
@@ -46,12 +46,12 @@ export function deckCost(deck: Deck, byId: Map<number, Card>): DeckCost {
   return kosten
 }
 
-/** Kurzform für einen Tooltip: "300 UR-CP · 0.34 €" */
+/** Kurzform für einen Tooltip: "30 UR-CP · 0.34 €" */
 export function cardCostLabel(card: Card): string {
   const teile =
     card.md === undefined
       ? ['nicht in Master Duel']
-      : [`${String(CRAFT_CP[card.md])} ${card.md}-CP`]
+      : [`${String(CRAFT_CP)} ${card.md}-CP`]
   if (card.price !== undefined) teile.push(`${card.price.toFixed(2)} €`)
   return teile.join(' · ')
 }

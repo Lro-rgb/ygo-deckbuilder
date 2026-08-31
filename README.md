@@ -82,7 +82,8 @@ dabei den Node-Prozess: das Ausliefern eines einzelnen Bildes dauert dann rund
   `https://db.ygoprodeck.com/api/v7/cardinfo.php`
 - Preise: Cardmarket-Richtpreise aus derselben API-Antwort. Momentaufnahme des
   Imports, kein Angebot — der echte Preis hängt an Auflage, Zustand und Anbieter.
-- Craft-Kosten in Master Duel: 30 N-CP, 30 R-CP, 100 SR-CP, 300 UR-CP je Kopie.
-  Die vier Töpfe sind getrennt und lassen sich nicht gegeneinander tauschen.
+- Craft-Kosten in Master Duel: 30 CP je Kopie, in der Sorte der Karte. Die vier
+  Töpfe (N, R, SR, UR) sind getrennt und nicht gegeneinander tauschbar — eine
+  UR kostet 30 UR-CP, nicht 30 beliebige CP.
 - Yu-Gi-Oh! ist eine Marke von Konami. Dieses Projekt ist ein privates
   Lernprojekt ohne Verbindung zu Konami.
