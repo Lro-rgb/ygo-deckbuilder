@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { cardImageUrl } from '../data/cards.ts'
-import type { Card } from '../data/types.ts'
+import type { Card, MdRarity } from '../data/types.ts'
 import { deckCost } from '../deck/cost.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
@@ -38,6 +38,8 @@ export function DeckPanel({
   const total = deck.main.length + deck.extra.length + deck.side.length
   // Über 60 Karten summieren ist billiger als der Vergleich, den useMemo dafür bräuchte.
   const kosten = deckCost(deck, byId)
+  // Nur die Töpfe zeigen, in denen wirklich etwas zu zahlen ist.
+  const cp = (Object.keys(kosten.cp) as MdRarity[]).filter((stufe) => kosten.cp[stufe] > 0)
   const fehlt = [
     kosten.ohneMd > 0 ? `${String(kosten.ohneMd)}× nicht in Master Duel` : null,
     kosten.ohnePreis > 0 ? `${String(kosten.ohnePreis)}× ohne Preis` : null,
@@ -54,12 +56,16 @@ export function DeckPanel({
 
         {total > 0 && (
           <p className="text-sm text-slate-400">
-            <span title="Kosten, um alle Kopien in Master Duel herzustellen">
-              {zahl.format(kosten.cp)} CP
-            </span>{' '}
-            ·{' '}
             <span title="Summe der Cardmarket-Richtpreise, eine Momentaufnahme">
               {euro.format(kosten.euro)}
+            </span>
+            <span
+              className="block"
+              title="Master Duel führt vier getrennte CP-Töpfe; sie lassen sich nicht gegeneinander tauschen"
+            >
+              {cp.length === 0
+                ? 'keine Karte in Master Duel'
+                : cp.map((stufe) => `${zahl.format(kosten.cp[stufe])} ${stufe}-CP`).join(' · ')}
             </span>
             {fehlt.length > 0 && (
               <span className="block text-xs text-slate-500">nicht enthalten: {fehlt.join(', ')}</span>

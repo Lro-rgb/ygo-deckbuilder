@@ -15,8 +15,9 @@ Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
   Zonen zusammen und die aktuelle TCG-Banlist
 - Import und Export im `.ydk`-Format
 - Das Deck überlebt einen Reload: es liegt im `localStorage` des Browsers
-- Kosten des Decks: Craft-Preis in Master Duel (CP) und Summe der
-  Cardmarket-Richtpreise; Karten ohne Angabe werden ausgewiesen statt mitgerechnet
+- Kosten des Decks: Craft-Preis in Master Duel je CP-Topf (N, R, SR, UR sind
+  getrennte Währungen) und Summe der Cardmarket-Richtpreise; Karten ohne
+  Angabe werden ausgewiesen statt mitgerechnet
 - Deck teilen: der Knopf legt einen Link in die Zwischenablage, der das ganze
   Deck im URL-Fragment trägt — kein Server, keine Datenbank
 - Starthand: Chance auf jede Karte in den ersten fünf Karten, exakt über die
@@ -81,6 +82,7 @@ dabei den Node-Prozess: das Ausliefern eines einzelnen Bildes dauert dann rund
   `https://db.ygoprodeck.com/api/v7/cardinfo.php`
 - Preise: Cardmarket-Richtpreise aus derselben API-Antwort. Momentaufnahme des
   Imports, kein Angebot — der echte Preis hängt an Auflage, Zustand und Anbieter.
-- Craft-Kosten in Master Duel: N und R je 30 CP, SR 100 CP, UR 300 CP
+- Craft-Kosten in Master Duel: 30 N-CP, 30 R-CP, 100 SR-CP, 300 UR-CP je Kopie.
+  Die vier Töpfe sind getrennt und lassen sich nicht gegeneinander tauschen.
 - Yu-Gi-Oh! ist eine Marke von Konami. Dieses Projekt ist ein privates
   Lernprojekt ohne Verbindung zu Konami.

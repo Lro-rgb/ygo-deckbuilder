@@ -9,8 +9,11 @@ import type { Deck } from './deck.ts'
 export const CRAFT_CP: Record<MdRarity, number> = { N: 30, R: 30, SR: 100, UR: 300 }
 
 export interface DeckCost {
-  /** Craft-Kosten in CP für alle Kopien zusammen. */
-  cp: number
+  /**
+   * Craft-Kosten je Seltenheit. Master Duel führt vier getrennte CP-Töpfe:
+   * mit UR-CP lässt sich keine SR herstellen, darum wird nicht summiert.
+   */
+  cp: Record<MdRarity, number>
   /** Summe der Cardmarket-Richtpreise in Euro. */
   euro: number
   /** Kopien, die es in Master Duel nicht gibt — sie fehlen in der CP-Summe. */
@@ -25,7 +28,7 @@ export interface DeckCost {
  * unvollständige Summe aus wie eine vollständige.
  */
 export function deckCost(deck: Deck, byId: Map<number, Card>): DeckCost {
-  const kosten: DeckCost = { cp: 0, euro: 0, ohneMd: 0, ohnePreis: 0 }
+  const kosten: DeckCost = { cp: { N: 0, R: 0, SR: 0, UR: 0 }, euro: 0, ohneMd: 0, ohnePreis: 0 }
 
   for (const id of [...deck.main, ...deck.extra, ...deck.side]) {
     const card = byId.get(id)
@@ -35,7 +38,7 @@ export function deckCost(deck: Deck, byId: Map<number, Card>): DeckCost {
       continue
     }
     if (card.md === undefined) kosten.ohneMd++
-    else kosten.cp += CRAFT_CP[card.md]
+    else kosten.cp[card.md] += CRAFT_CP[card.md]
     if (card.price === undefined) kosten.ohnePreis++
     else kosten.euro += card.price
   }
@@ -43,9 +46,12 @@ export function deckCost(deck: Deck, byId: Map<number, Card>): DeckCost {
   return kosten
 }
 
-/** Kurzform für einen Tooltip: "UR · 300 CP · 0.34 €" */
+/** Kurzform für einen Tooltip: "300 UR-CP · 0.34 €" */
 export function cardCostLabel(card: Card): string {
-  const teile = card.md === undefined ? ['nicht in Master Duel'] : [card.md, `${String(CRAFT_CP[card.md])} CP`]
+  const teile =
+    card.md === undefined
+      ? ['nicht in Master Duel']
+      : [`${String(CRAFT_CP[card.md])} ${card.md}-CP`]
   if (card.price !== undefined) teile.push(`${card.price.toFixed(2)} €`)
   return teile.join(' · ')
 }
