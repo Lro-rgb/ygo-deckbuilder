@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { cardImageUrl } from '../data/cards.ts'
 import type { Card } from '../data/types.ts'
+import { deckCost } from '../deck/cost.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
 import { encodeDeck } from '../deck/share.ts'
@@ -19,6 +20,9 @@ interface Props {
 
 const ZONES: Zone[] = ['main', 'extra', 'side']
 
+const zahl = new Intl.NumberFormat('de-CH')
+const euro = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'EUR' })
+
 const knopf = 'rounded border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500'
 
 export function DeckPanel({
@@ -32,6 +36,12 @@ export function DeckPanel({
   onClear,
 }: Props) {
   const total = deck.main.length + deck.extra.length + deck.side.length
+  // Über 60 Karten summieren ist billiger als der Vergleich, den useMemo dafür bräuchte.
+  const kosten = deckCost(deck, byId)
+  const fehlt = [
+    kosten.ohneMd > 0 ? `${String(kosten.ohneMd)}× nicht in Master Duel` : null,
+    kosten.ohnePreis > 0 ? `${String(kosten.ohnePreis)}× ohne Preis` : null,
+  ].filter((teil) => teil !== null)
   /** Zone unter dem Mauszeiger, nur zum Hervorheben. */
   const [über, setÜber] = useState<Zone | null>(null)
   /** Rückmeldung des Teilen-Knopfs, verschwindet nach zwei Sekunden wieder. */
@@ -41,6 +51,21 @@ export function DeckPanel({
     <aside className="w-80 shrink-0">
       <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
         <h2 className="text-lg font-semibold">Deck ({total})</h2>
+
+        {total > 0 && (
+          <p className="text-sm text-slate-400">
+            <span title="Kosten, um alle Kopien in Master Duel herzustellen">
+              {zahl.format(kosten.cp)} CP
+            </span>{' '}
+            ·{' '}
+            <span title="Summe der Cardmarket-Richtpreise, eine Momentaufnahme">
+              {euro.format(kosten.euro)}
+            </span>
+            {fehlt.length > 0 && (
+              <span className="block text-xs text-slate-500">nicht enthalten: {fehlt.join(', ')}</span>
+            )}
+          </p>
+        )}
 
         <div className="mt-2 flex flex-wrap gap-2 text-sm">
           <button type="button" onClick={onExport} className={knopf}>

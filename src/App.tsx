@@ -13,6 +13,7 @@ import {
   type Deck,
   type Zone,
 } from './deck/deck.ts'
+import { cardCostLabel } from './deck/cost.ts'
 import { decodePayload, encodePayload, DRAG_FORMAT } from './deck/dragPayload.ts'
 import { decodeDeck } from './deck/share.ts'
 import { loadDeck, saveDeck } from './deck/storage.ts'
@@ -201,7 +202,9 @@ export default function App() {
                     onClick={() => {
                       add(card)
                     }}
-                    title={`${card.name} — Klick fügt hinzu, Ziehen in eine Zone`}
+                    title={`${card.name}
+${cardCostLabel(card)}
+Klick fügt hinzu, Ziehen in eine Zone`}
                     className="block w-full cursor-grab active:cursor-grabbing"
                   >
                     <img

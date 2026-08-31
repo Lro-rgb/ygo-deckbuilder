@@ -31,7 +31,18 @@ export interface Card {
    * Fehlt das Feld, sind 3 Kopien erlaubt.
    */
   limit?: 0 | 1 | 2
+  /** Fehlt, wenn es die Karte in Master Duel (noch) nicht gibt. */
+  md?: MdRarity
+  /**
+   * Richtpreis einer einzelnen Karte auf Cardmarket in Euro, aus dem Import.
+   * Eine Momentaufnahme, kein Angebot: der echte Preis hängt an Auflage,
+   * Zustand und Anbieter. Fehlt, wenn keine Verkäufe bekannt sind.
+   */
+  price?: number
 }
+
+/** Seltenheit in Master Duel; bestimmt, was das Herstellen kostet. */
+export type MdRarity = 'N' | 'R' | 'SR' | 'UR'
 
 export interface CardDatabase {
   generatedAt: string

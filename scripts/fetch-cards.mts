@@ -15,14 +15,15 @@
 import { mkdir, readFile, writeFile, access } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Card, CardDatabase, DeckKind } from '../src/data/types.ts'
+import type { Card, CardDatabase, DeckKind, MdRarity } from '../src/data/types.ts'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const CACHE_FILE = path.join(ROOT, 'scripts', '.cache', 'cardinfo.json')
 const OUT_JSON = path.join(ROOT, 'public', 'cards.json')
 const IMAGE_DIR = path.join(ROOT, 'public', 'cards')
 
-const API_URL = 'https://db.ygoprodeck.com/api/v7/cardinfo.php'
+// misc=yes liefert zusaetzlich die Master-Duel-Seltenheit; die Preise sind ohnehin dabei.
+const API_URL = 'https://db.ygoprodeck.com/api/v7/cardinfo.php?misc=yes'
 const CONCURRENCY = 8
 /** Mindestabstand zwischen zwei Bild-Requests -> max. ~16 req/s, Puffer zum Limit. */
 const MIN_GAP_MS = 60
@@ -51,6 +52,9 @@ interface ApiCard {
   archetype?: string | null
   card_images?: ApiImage[]
   banlist_info?: { ban_tcg?: string | null }
+  // Preise kommen als Strings, auch die "0.00" fuer Karten ohne Verkaeufe.
+  card_prices?: { cardmarket_price?: string }[]
+  misc_info?: { md_rarity?: string }[]
 }
 
 // --- Argumente --------------------------------------------------------------
@@ -98,6 +102,15 @@ const EXTRA_DECK = /\b(Fusion|Synchro|XYZ|Link)\b/i
 /** Tokens und Speed-Duel-Skills sind in keinem normalen Deck spielbar. */
 const NOT_PLAYABLE = /\b(Token|Skill Card)\b/i
 
+/** Schreibweise der API -> Kuerzel, das im JSON landet. */
+const MD_RARITIES: Record<string, MdRarity> = {
+  // Die API schreibt "Common", im Spiel heisst dieselbe Stufe N.
+  Common: 'N',
+  Rare: 'R',
+  'Super Rare': 'SR',
+  'Ultra Rare': 'UR',
+}
+
 const BAN_LIMITS: Record<string, 0 | 1 | 2> = {
   Forbidden: 0,
   Limited: 1,
@@ -133,6 +146,14 @@ function toCard(raw: ApiCard): Card {
 
   const ban = raw.banlist_info?.ban_tcg
   if (ban != null && ban in BAN_LIMITS) card.limit = BAN_LIMITS[ban]
+
+  const md = raw.misc_info?.[0]?.md_rarity
+  if (md != null && md in MD_RARITIES) card.md = MD_RARITIES[md]
+
+  // "0.00" heisst: kein Preis bekannt. Als 0 gespeichert wuerde das eine
+  // Gratiskarte vortaeuschen, darum faellt der Wert dann ganz weg.
+  const preis = Number(raw.card_prices?.[0]?.cardmarket_price)
+  if (Number.isFinite(preis) && preis > 0) card.price = preis
 
   return card
 }
