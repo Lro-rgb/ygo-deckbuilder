@@ -45,6 +45,11 @@ werden übersprungen — ein abgebrochener Lauf kann einfach neu gestartet werde
 Die erzeugten Dateien (`public/cards.json`, `public/cards/`, `scripts/.cache/`)
 sind bewusst nicht im Repository; sie werden lokal mit `npm run cards` erzeugt.
 
+Die Kartenbilder sind in `vite.config.ts` vom Dateiwächter ausgenommen. Ohne
+diese Ausnahme indexiert Vite beim Start alle ~14'000 Bilder und blockiert
+dabei den Node-Prozess: das Ausliefern eines einzelnen Bildes dauert dann rund
+1.4 Sekunden statt 1 Millisekunde.
+
 ## Quellen
 
 - Kartendaten und Bilder: [YGOPRODeck](https://ygoprodeck.com/) via
