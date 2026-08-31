@@ -12,6 +12,8 @@ Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
   (inklusive „nicht in Master Duel")
 - Deck-Editor mit Main, Extra und Side Deck; Karten per Klick oder
   Drag and Drop hinzufügen, verschieben und entfernen
+- Grossansicht des Decks über ein natives `<dialog>` (Esc, Backdrop-Klick und
+  Fokusfalle kommen vom Browser), „rückgängig" für die letzte Deckänderung
 - Laufende Regelprüfung: Zonengrössen, höchstens drei Kopien über alle
   Zonen zusammen und die aktuelle TCG-Banlist
 - Import und Export im `.ydk`-Format

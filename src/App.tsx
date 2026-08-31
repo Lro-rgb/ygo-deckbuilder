@@ -30,6 +30,8 @@ export default function App() {
   const [deck, setDeck] = useState<Deck>(() => decodeDeck(location.hash) ?? loadDeck())
   /** Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. */
   const [hinweis, setHinweis] = useState<string | null>(null)
+  /** Deckstand vor der letzten Änderung. Eine Stufe reicht gegen Fehlklicks. */
+  const [vorher, setVorher] = useState<Deck | null>(null)
 
   // Das Fragment nach dem Übernehmen entfernen: sonst holt ein Reload später
   // wieder das geteilte Deck und wirft die eigenen Änderungen weg.
@@ -62,6 +64,12 @@ export default function App() {
 
   const grid = useGridWindow(results.length)
 
+  /** Jede Deckänderung geht hier durch, damit "rückgängig" immer greift. */
+  const ändere = (next: Deck): void => {
+    setVorher(deck)
+    setDeck(next)
+  }
+
   const patch = (part: Partial<CardQuery>): void => {
     setQuery((old) => ({ ...old, ...part }))
   }
@@ -74,12 +82,12 @@ export default function App() {
       return
     }
     setHinweis(null)
-    setDeck(addCard(deck, card, zone))
+    ändere(addCard(deck, card, zone))
   }
 
   const remove = (zone: Zone, position: number): void => {
     setHinweis(null)
-    setDeck(removeAt(deck, zone, position))
+    ändere(removeAt(deck, zone, position))
   }
 
   /** Ziel eines Drops: entweder eine neue Karte aus der Suche oder ein Umzug. */
@@ -108,7 +116,7 @@ export default function App() {
       return
     }
     setHinweis(null)
-    setDeck(addCard(ohne, card, zone))
+    ändere(addCard(ohne, card, zone))
   }
 
   /** Lädt das Deck als .ydk herunter — Blob und <a download>, ohne Bibliothek. */
@@ -129,7 +137,7 @@ export default function App() {
     if (collection === null) return
     void file.text().then((inhalt) => {
       const { deck: geladen, warnings } = fromYdk(inhalt, collection)
-      setDeck(geladen)
+      ändere(geladen)
       setHinweis(warnings.length > 0 ? warnings.join(' · ') : null)
     })
   }
@@ -147,7 +155,7 @@ export default function App() {
 
   return (
     <Page>
-      <div className="mt-4 flex gap-6">
+      <div className="mt-4 flex flex-col gap-6 lg:flex-row">
         <div className="min-w-0 flex-1">
           <input
             type="search"
@@ -233,9 +241,18 @@ Klick fügt hinzu, Ziehen in eine Zone`}
           onExport={exportieren}
           onImport={importieren}
           onClear={() => {
-            setDeck(EMPTY_DECK)
+            ändere(EMPTY_DECK)
             setHinweis(null)
           }}
+          onUndo={
+            vorher === null
+              ? null
+              : () => {
+                  setDeck(vorher)
+                  setVorher(null)
+                  setHinweis(null)
+                }
+          }
         />
       </div>
     </Page>
