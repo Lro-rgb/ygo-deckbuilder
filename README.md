@@ -15,6 +15,8 @@ Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
   Zonen zusammen und die aktuelle TCG-Banlist
 - Import und Export im `.ydk`-Format
 - Das Deck überlebt einen Reload: es liegt im `localStorage` des Browsers
+- Deck teilen: der Knopf legt einen Link in die Zwischenablage, der das ganze
+  Deck im URL-Fragment trägt — kein Server, keine Datenbank
 - Starthand: Chance auf jede Karte in den ersten fünf Karten, exakt über die
   hypergeometrische Verteilung gerechnet statt simuliert, dazu eine Beispielhand
 

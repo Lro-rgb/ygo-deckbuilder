@@ -14,6 +14,7 @@ import {
   type Zone,
 } from './deck/deck.ts'
 import { decodePayload, encodePayload, DRAG_FORMAT } from './deck/dragPayload.ts'
+import { decodeDeck } from './deck/share.ts'
 import { loadDeck, saveDeck } from './deck/storage.ts'
 import { fromYdk, toYdk } from './deck/ydk.ts'
 import { useDebounced } from './hooks/useDebounced.ts'
@@ -23,9 +24,17 @@ import { EMPTY_QUERY, filterCards, type CardQuery } from './search/filter.ts'
 export default function App() {
   const cards = useCards()
   const [query, setQuery] = useState<CardQuery>(EMPTY_QUERY)
-  const [deck, setDeck] = useState<Deck>(loadDeck)
+  // Ein geteilter Link schlägt das gespeicherte Deck — sonst würde man beim
+  // Öffnen sein eigenes Deck sehen statt das, was einem geschickt wurde.
+  const [deck, setDeck] = useState<Deck>(() => decodeDeck(location.hash) ?? loadDeck())
   /** Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. */
   const [hinweis, setHinweis] = useState<string | null>(null)
+
+  // Das Fragment nach dem Übernehmen entfernen: sonst holt ein Reload später
+  // wieder das geteilte Deck und wirft die eigenen Änderungen weg.
+  useEffect(() => {
+    if (location.hash !== '') history.replaceState(null, '', location.pathname)
+  }, [])
 
   // Jede Deckänderung sofort sichern; ~60 Zahlen als JSON sind auch synchron
   // schnell genug, ein Entprellen wäre hier nur zusätzliche Mechanik.

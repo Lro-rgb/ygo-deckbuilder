@@ -3,6 +3,7 @@ import { cardImageUrl } from '../data/cards.ts'
 import type { Card } from '../data/types.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
+import { encodeDeck } from '../deck/share.ts'
 import { OpeningHand } from './OpeningHand.tsx'
 
 interface Props {
@@ -33,6 +34,8 @@ export function DeckPanel({
   const total = deck.main.length + deck.extra.length + deck.side.length
   /** Zone unter dem Mauszeiger, nur zum Hervorheben. */
   const [über, setÜber] = useState<Zone | null>(null)
+  /** Rückmeldung des Teilen-Knopfs, verschwindet nach zwei Sekunden wieder. */
+  const [geteilt, setGeteilt] = useState<string | null>(null)
 
   return (
     <aside className="w-80 shrink-0">
@@ -58,6 +61,24 @@ export function DeckPanel({
               }}
             />
           </label>
+          <button
+            type="button"
+            onClick={() => {
+              const url = `${location.origin}${location.pathname}#${encodeDeck(deck)}`
+              void navigator.clipboard
+                .writeText(url)
+                .then(() => { setGeteilt('Link kopiert') })
+                .catch(() => {
+                  // Ohne HTTPS oder ohne Erlaubnis gibt es keine Zwischenablage;
+                  // im Dialog lässt sich der Link wenigstens von Hand kopieren.
+                  window.prompt('Link zum Teilen', url)
+                })
+                .finally(() => setTimeout(() => { setGeteilt(null) }, 2000))
+            }}
+            className={knopf}
+          >
+            {geteilt ?? 'Link teilen'}
+          </button>
           <button type="button" onClick={onClear} className={knopf}>
             leeren
           </button>
