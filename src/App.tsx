@@ -36,7 +36,11 @@ export default function App() {
   // Das Fragment nach dem Übernehmen entfernen: sonst holt ein Reload später
   // wieder das geteilte Deck und wirft die eigenen Änderungen weg.
   useEffect(() => {
-    if (location.hash !== '') history.replaceState(null, '', location.pathname)
+    if (location.hash === '') return
+    if (decodeDeck(location.hash) === null) {
+      setHinweis('Der geteilte Link enthielt kein gültiges Deck.')
+    }
+    history.replaceState(null, '', location.pathname)
   }, [])
 
   // Jede Deckänderung sofort sichern; ~60 Zahlen als JSON sind auch synchron

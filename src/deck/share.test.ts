@@ -30,6 +30,20 @@ test('fremde Fragmente ergeben kein Deck', () => {
   assert.equal(decodeDeck('rz2y6.!~~'), null)
 })
 
+test('masslos lange Links werden abgewiesen', () => {
+  const viele = Array.from({ length: 201 }, () => (46986414).toString(36)).join('.')
+  assert.equal(decodeDeck(`${viele}~~`), null)
+})
+
+test('IDs ausserhalb des Passcode-Bereichs sind kein Deck', () => {
+  assert.equal(decodeDeck(`${(100_000_000).toString(36)}~~`), null)
+  assert.deepEqual(decodeDeck(`${(99_999_999).toString(36)}~~`), {
+    main: [99_999_999],
+    extra: [],
+    side: [],
+  })
+})
+
 test('drei leere Zonen sind ein leeres Deck, kein Fehler', () => {
   assert.deepEqual(decodeDeck('~~'), EMPTY_DECK)
 })
