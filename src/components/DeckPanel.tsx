@@ -1,18 +1,23 @@
+import { useState } from 'react'
 import { cardImageUrl } from '../data/cards.ts'
 import type { Card } from '../data/types.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
+import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
 
 interface Props {
   deck: Deck
   byId: Map<number, Card>
   issues: string[]
   onRemove: (zone: Zone, index: number) => void
+  onDropInZone: (zone: Zone, raw: string) => void
 }
 
 const ZONES: Zone[] = ['main', 'extra', 'side']
 
-export function DeckPanel({ deck, byId, issues, onRemove }: Props) {
+export function DeckPanel({ deck, byId, issues, onRemove, onDropInZone }: Props) {
   const total = deck.main.length + deck.extra.length + deck.side.length
+  /** Zone unter dem Mauszeiger, nur zum Hervorheben. */
+  const [über, setÜber] = useState<Zone | null>(null)
 
   return (
     <aside className="w-80 shrink-0">
@@ -32,7 +37,25 @@ export function DeckPanel({ deck, byId, issues, onRemove }: Props) {
         )}
 
         {ZONES.map((zone) => (
-          <section key={zone} className="mt-4">
+          <section
+            key={zone}
+            // Ohne preventDefault im dragOver lässt der Browser gar nicht fallen.
+            onDragOver={(e) => {
+              e.preventDefault()
+              setÜber(zone)
+            }}
+            onDragLeave={() => {
+              setÜber((current) => (current === zone ? null : current))
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              setÜber(null)
+              onDropInZone(zone, e.dataTransfer.getData(DRAG_FORMAT))
+            }}
+            className={`mt-4 rounded border-2 border-dashed p-1 transition-colors ${
+              über === zone ? 'border-sky-500 bg-sky-950/40' : 'border-transparent'
+            }`}
+          >
             <h3 className="text-sm text-slate-400">
               {ZONE_LABELS[zone]} — {deck[zone].length}
               {zone === 'main'
@@ -40,18 +63,26 @@ export function DeckPanel({ deck, byId, issues, onRemove }: Props) {
                 : ` / ${String(ZONE_LIMITS[zone].max)}`}
             </h3>
 
-            <ul className="mt-1 grid grid-cols-6 gap-1">
+            <ul className="mt-1 grid min-h-12 grid-cols-6 gap-1">
               {deck[zone].map((id, index) => {
                 const card = byId.get(id)
                 return (
                   <li key={`${String(id)}-${String(index)}`}>
                     <button
                       type="button"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(
+                          DRAG_FORMAT,
+                          encodePayload({ kind: 'deck', zone, index }),
+                        )
+                        e.dataTransfer.effectAllowed = 'move'
+                      }}
                       onClick={() => {
                         onRemove(zone, index)
                       }}
-                      title={`${card?.name ?? String(id)} — Klick entfernt`}
-                      className="block w-full cursor-pointer"
+                      title={`${card?.name ?? String(id)} — Klick entfernt, Ziehen verschiebt`}
+                      className="block w-full cursor-grab active:cursor-grabbing"
                     >
                       <img
                         src={cardImageUrl(id)}
@@ -59,6 +90,7 @@ export function DeckPanel({ deck, byId, issues, onRemove }: Props) {
                         width={168}
                         height={246}
                         loading="lazy"
+                        draggable={false}
                         className="w-full rounded hover:opacity-60"
                       />
                     </button>

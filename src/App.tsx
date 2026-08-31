@@ -13,6 +13,7 @@ import {
   type Deck,
   type Zone,
 } from './deck/deck.ts'
+import { decodePayload, encodePayload, DRAG_FORMAT } from './deck/dragPayload.ts'
 import { useDebounced } from './hooks/useDebounced.ts'
 import { GAP, useGridWindow } from './hooks/useGridWindow.ts'
 import { EMPTY_QUERY, filterCards, type CardQuery } from './search/filter.ts'
@@ -60,6 +61,35 @@ export default function App() {
   const remove = (zone: Zone, position: number): void => {
     setHinweis(null)
     setDeck(removeAt(deck, zone, position))
+  }
+
+  /** Ziel eines Drops: entweder eine neue Karte aus der Suche oder ein Umzug. */
+  const dropInZone = (zone: Zone, raw: string): void => {
+    const payload = decodePayload(raw)
+    if (payload === null || byId === null) return
+
+    if (payload.kind === 'card') {
+      const card = byId.get(payload.id)
+      if (card !== undefined) add(card, zone)
+      return
+    }
+
+    if (payload.zone === zone) return
+
+    const id = deck[payload.zone][payload.index]
+    const card = byId.get(id)
+    if (card === undefined) return
+
+    // Erst entfernen, dann prüfen: sonst zählt die Karte bei der
+    // Kopiengrenze doppelt und ein reiner Umzug würde abgelehnt.
+    const ohne = removeAt(deck, payload.zone, payload.index)
+    const grund = whyNotAdd(ohne, card, zone)
+    if (grund !== null) {
+      setHinweis(grund)
+      return
+    }
+    setHinweis(null)
+    setDeck(addCard(ohne, card, zone))
   }
 
   if (cards.status === 'loading') {
@@ -119,11 +149,19 @@ export default function App() {
                 <li key={card.id}>
                   <button
                     type="button"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        DRAG_FORMAT,
+                        encodePayload({ kind: 'card', id: card.id }),
+                      )
+                      e.dataTransfer.effectAllowed = 'copy'
+                    }}
                     onClick={() => {
                       add(card)
                     }}
-                    title={`${card.name} — Klick fügt hinzu`}
-                    className="block w-full cursor-pointer"
+                    title={`${card.name} — Klick fügt hinzu, Ziehen in eine Zone`}
+                    className="block w-full cursor-grab active:cursor-grabbing"
                   >
                     <img
                       src={cardImageUrl(card.id)}
@@ -131,6 +169,7 @@ export default function App() {
                       loading="lazy"
                       width={168}
                       height={246}
+                      draggable={false}
                       className="w-full rounded hover:opacity-60"
                     />
                   </button>
@@ -146,6 +185,7 @@ export default function App() {
           byId={cards.collection.byId}
           issues={issues}
           onRemove={remove}
+          onDropInZone={dropInZone}
         />
       </div>
     </Page>
