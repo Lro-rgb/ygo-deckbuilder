@@ -15,8 +15,9 @@ export interface CardCollection {
 /**
  * Vite kann die App unter einem Unterpfad ausliefern (z.B. /deckbuilder/).
  * BASE_URL endet immer mit einem Slash, deshalb wird hier keiner ergänzt.
+ * Der Fallback greift in den Tests, die unter Node ohne Vite laufen.
  */
-const BASE = import.meta.env.BASE_URL
+const BASE: string = import.meta.env?.BASE_URL ?? '/'
 
 export function cardImageUrl(cardId: number): string {
   return `${BASE}cards/${cardId}.jpg`

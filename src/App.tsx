@@ -14,6 +14,7 @@ import {
   type Zone,
 } from './deck/deck.ts'
 import { decodePayload, encodePayload, DRAG_FORMAT } from './deck/dragPayload.ts'
+import { fromYdk, toYdk } from './deck/ydk.ts'
 import { useDebounced } from './hooks/useDebounced.ts'
 import { GAP, useGridWindow } from './hooks/useGridWindow.ts'
 import { EMPTY_QUERY, filterCards, type CardQuery } from './search/filter.ts'
@@ -29,7 +30,8 @@ export default function App() {
   const text = useDebounced(query.text)
 
   const index = cards.status === 'ready' ? cards.index : null
-  const byId = cards.status === 'ready' ? cards.collection.byId : null
+  const collection = cards.status === 'ready' ? cards.collection : null
+  const byId = collection?.byId ?? null
 
   const results = useMemo(
     () => (index === null ? [] : filterCards(index, { ...query, text })),
@@ -90,6 +92,29 @@ export default function App() {
     }
     setHinweis(null)
     setDeck(addCard(ohne, card, zone))
+  }
+
+  /** Lädt das Deck als .ydk herunter — Blob und <a download>, ohne Bibliothek. */
+  const exportieren = (): void => {
+    const url = URL.createObjectURL(new Blob([toYdk(deck)], { type: 'text/plain' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'deck.ydk'
+    link.click()
+    // Ohne revoke bleibt der Blob bis zum Neuladen der Seite im Speicher.
+    // Erst im nächsten Tick, weil manche Browser den Download sonst abbrechen.
+    setTimeout(() => {
+      URL.revokeObjectURL(url)
+    }, 0)
+  }
+
+  const importieren = (file: File): void => {
+    if (collection === null) return
+    void file.text().then((inhalt) => {
+      const { deck: geladen, warnings } = fromYdk(inhalt, collection)
+      setDeck(geladen)
+      setHinweis(warnings.length > 0 ? warnings.join(' · ') : null)
+    })
   }
 
   if (cards.status === 'loading') {
@@ -186,6 +211,12 @@ export default function App() {
           issues={issues}
           onRemove={remove}
           onDropInZone={dropInZone}
+          onExport={exportieren}
+          onImport={importieren}
+          onClear={() => {
+            setDeck(EMPTY_DECK)
+            setHinweis(null)
+          }}
         />
       </div>
     </Page>

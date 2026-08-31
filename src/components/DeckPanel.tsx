@@ -10,11 +10,25 @@ interface Props {
   issues: string[]
   onRemove: (zone: Zone, index: number) => void
   onDropInZone: (zone: Zone, raw: string) => void
+  onExport: () => void
+  onImport: (file: File) => void
+  onClear: () => void
 }
 
 const ZONES: Zone[] = ['main', 'extra', 'side']
 
-export function DeckPanel({ deck, byId, issues, onRemove, onDropInZone }: Props) {
+const knopf = 'rounded border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500'
+
+export function DeckPanel({
+  deck,
+  byId,
+  issues,
+  onRemove,
+  onDropInZone,
+  onExport,
+  onImport,
+  onClear,
+}: Props) {
   const total = deck.main.length + deck.extra.length + deck.side.length
   /** Zone unter dem Mauszeiger, nur zum Hervorheben. */
   const [über, setÜber] = useState<Zone | null>(null)
@@ -23,6 +37,30 @@ export function DeckPanel({ deck, byId, issues, onRemove, onDropInZone }: Props)
     <aside className="w-80 shrink-0">
       <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
         <h2 className="text-lg font-semibold">Deck ({total})</h2>
+
+        <div className="mt-2 flex flex-wrap gap-2 text-sm">
+          <button type="button" onClick={onExport} className={knopf}>
+            .ydk speichern
+          </button>
+          {/* Der Datei-Dialog gehoert dem input; das label macht ihn klickbar. */}
+          <label className={`${knopf} cursor-pointer`}>
+            .ydk laden
+            <input
+              type="file"
+              accept=".ydk,text/plain"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) onImport(file)
+                // Zuruecksetzen, damit dieselbe Datei erneut gewaehlt werden kann.
+                e.target.value = ''
+              }}
+            />
+          </label>
+          <button type="button" onClick={onClear} className={knopf}>
+            leeren
+          </button>
+        </div>
 
         {issues.length === 0 ? (
           <p className="mt-2 rounded bg-emerald-950 px-2 py-1 text-sm text-emerald-300">

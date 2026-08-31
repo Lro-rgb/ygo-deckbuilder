@@ -95,3 +95,14 @@ test('validate akzeptiert ein regelkonformes Deck', () => {
   }
   assert.deepEqual(validate({ main, extra: [], side: [] }, byId), [])
 })
+
+test('validate findet Karten in der falschen Zone', () => {
+  const byId = new Map([
+    [1, monster],
+    [2, extraMonster],
+  ])
+  // So kann nur ein Import aussehen, über die Oberfläche geht das nicht.
+  const issues = validate({ main: [2], extra: [1], side: [] }, byId).join('\n')
+  assert.match(issues, /Karte 2 liegt im Main Deck, gehört aber ins Extra Deck/)
+  assert.match(issues, /Karte 1 liegt im Extra Deck, gehört aber ins Main Deck/)
+})

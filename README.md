@@ -5,6 +5,16 @@ Deck-Editor mit Main/Extra/Side, Banlist-Prüfung und `.ydk`-Import/Export.
 
 Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
 
+## Funktionen
+
+- Kartensuche über ~14'000 Karten mit Freitext sowie Filtern für Typ,
+  Attribut, Monsterart, Archetyp, Level/Rang, ATK und DEF
+- Deck-Editor mit Main, Extra und Side Deck; Karten per Klick oder
+  Drag and Drop hinzufügen, verschieben und entfernen
+- Laufende Regelprüfung: Zonengrössen, höchstens drei Kopien über alle
+  Zonen zusammen und die aktuelle TCG-Banlist
+- Import und Export im `.ydk`-Format
+
 ## Einrichten
 
 ```bash
@@ -15,6 +25,13 @@ npm run dev
 
 `npm run cards` ist der einmalige Kartenimport (siehe unten). Ohne diesen
 Schritt startet die App zwar, hat aber keine Kartendaten.
+
+Die Regeln des Deck-Editors und der `.ydk`-Umgang sind mit dem Testrunner von
+Node abgedeckt, ohne zusätzliches Testframework:
+
+```bash
+npm test
+```
 
 ## Kartenimport
 

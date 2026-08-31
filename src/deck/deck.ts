@@ -84,6 +84,20 @@ export function validate(deck: Deck, byId: Map<number, Card>): string[] {
     if (size > max) issues.push(`${ZONE_LABELS[zone]}: ${String(size)} Karten, höchstens ${String(max)}`)
   }
 
+  // Ein importiertes .ydk kann Karten in der falschen Zone haben; beim
+  // Hinzufügen über die Oberfläche kann das nicht passieren.
+  for (const zone of ['main', 'extra'] as const) {
+    const falsch = new Set<string>()
+    for (const id of deck[zone]) {
+      const card = byId.get(id)
+      if (card !== undefined && card.deck !== zone) falsch.add(card.name)
+    }
+    const richtig = ZONE_LABELS[zone === 'main' ? 'extra' : 'main']
+    for (const name of falsch) {
+      issues.push(`${name} liegt im ${ZONE_LABELS[zone]}, gehört aber ins ${richtig}`)
+    }
+  }
+
   // Über die Grenze geratene Kopien können aus einem Import stammen, darum
   // wird hier gegen den ganzen Deckinhalt geprüft und nicht nur beim Hinzufügen.
   const seen = new Set<number>()
