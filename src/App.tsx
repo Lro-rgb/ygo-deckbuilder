@@ -1,7 +1,18 @@
 import { useMemo, useState } from 'react'
+import { DeckPanel } from './components/DeckPanel.tsx'
 import { Filters } from './components/Filters.tsx'
 import { cardImageUrl } from './data/cards.ts'
+import type { Card } from './data/types.ts'
 import { useCards } from './data/useCards.ts'
+import {
+  EMPTY_DECK,
+  addCard,
+  removeAt,
+  validate,
+  whyNotAdd,
+  type Deck,
+  type Zone,
+} from './deck/deck.ts'
 import { useDebounced } from './hooks/useDebounced.ts'
 import { GAP, useGridWindow } from './hooks/useGridWindow.ts'
 import { EMPTY_QUERY, filterCards, type CardQuery } from './search/filter.ts'
@@ -9,20 +20,46 @@ import { EMPTY_QUERY, filterCards, type CardQuery } from './search/filter.ts'
 export default function App() {
   const cards = useCards()
   const [query, setQuery] = useState<CardQuery>(EMPTY_QUERY)
+  const [deck, setDeck] = useState<Deck>(EMPTY_DECK)
+  /** Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. */
+  const [hinweis, setHinweis] = useState<string | null>(null)
+
   // Nur der Freitext wird entprellt; Dropdowns feuern ohnehin nur beim Auswählen.
   const text = useDebounced(query.text)
 
   const index = cards.status === 'ready' ? cards.index : null
+  const byId = cards.status === 'ready' ? cards.collection.byId : null
 
   const results = useMemo(
     () => (index === null ? [] : filterCards(index, { ...query, text })),
     [index, query, text],
   )
 
+  const issues = useMemo(
+    () => (byId === null ? [] : validate(deck, byId)),
+    [deck, byId],
+  )
+
   const grid = useGridWindow(results.length)
 
   const patch = (part: Partial<CardQuery>): void => {
     setQuery((old) => ({ ...old, ...part }))
+  }
+
+  /** Legt die Karte in ihre natürliche Zone; Extra-Deck-Karten also ins Extra Deck. */
+  const add = (card: Card, zone: Zone = card.deck): void => {
+    const grund = whyNotAdd(deck, card, zone)
+    if (grund !== null) {
+      setHinweis(grund)
+      return
+    }
+    setHinweis(null)
+    setDeck(addCard(deck, card, zone))
+  }
+
+  const remove = (zone: Zone, position: number): void => {
+    setHinweis(null)
+    setDeck(removeAt(deck, zone, position))
   }
 
   if (cards.status === 'loading') {
@@ -38,58 +75,78 @@ export default function App() {
 
   return (
     <Page>
-      <input
-        type="search"
-        value={query.text}
-        onChange={(e) => {
-          patch({ text: e.target.value })
-        }}
-        placeholder="Karte suchen …"
-        className="mt-4 w-full max-w-md rounded border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
-      />
+      <div className="mt-4 flex gap-6">
+        <div className="min-w-0 flex-1">
+          <input
+            type="search"
+            value={query.text}
+            onChange={(e) => {
+              patch({ text: e.target.value })
+            }}
+            placeholder="Karte suchen …"
+            className="w-full max-w-md rounded border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+          />
 
-      <Filters facets={cards.facets} query={query} onChange={patch} />
+          <Filters facets={cards.facets} query={query} onChange={patch} />
 
-      <div className="mt-4 flex items-center gap-3 text-sm text-slate-400">
-        <span>
-          {results.length} von {cards.collection.cards.length} Karten
-        </span>
-        <button
-          type="button"
-          onClick={() => {
-            setQuery(EMPTY_QUERY)
-          }}
-          className="rounded border border-slate-700 px-2 py-1 hover:border-slate-500"
-        >
-          Filter zurücksetzen
-        </button>
-      </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-400">
+            <span>
+              {results.length} von {cards.collection.cards.length} Karten
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery(EMPTY_QUERY)
+              }}
+              className="rounded border border-slate-700 px-2 py-1 hover:border-slate-500"
+            >
+              Filter zurücksetzen
+            </button>
+            {hinweis !== null && <span className="text-amber-400">{hinweis}</span>}
+          </div>
 
-      {/* Die Platzhalter halten die Scrollhöhe, obwohl nur der Sichtbereich im DOM liegt. */}
-      <div ref={grid.setContainer} className="mt-4">
-        <div style={{ height: grid.paddingTop }} />
-        <ul
-          className="grid"
-          style={{
-            gridTemplateColumns: `repeat(${String(grid.columns)}, minmax(0, 1fr))`,
-            gap: GAP,
-          }}
-        >
-          {results.slice(grid.first, grid.last).map((card) => (
-            <li key={card.id}>
-              <img
-                src={cardImageUrl(card.id)}
-                alt={card.name}
-                title={card.name}
-                loading="lazy"
-                width={168}
-                height={246}
-                className="w-full rounded"
-              />
-            </li>
-          ))}
-        </ul>
-        <div style={{ height: grid.paddingBottom }} />
+          {/* Die Platzhalter halten die Scrollhöhe, obwohl nur der Sichtbereich im DOM liegt. */}
+          <div ref={grid.setContainer} className="mt-4">
+            <div style={{ height: grid.paddingTop }} />
+            <ul
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${String(grid.columns)}, minmax(0, 1fr))`,
+                gap: GAP,
+              }}
+            >
+              {results.slice(grid.first, grid.last).map((card) => (
+                <li key={card.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      add(card)
+                    }}
+                    title={`${card.name} — Klick fügt hinzu`}
+                    className="block w-full cursor-pointer"
+                  >
+                    <img
+                      src={cardImageUrl(card.id)}
+                      alt={card.name}
+                      loading="lazy"
+                      width={168}
+                      height={246}
+                      className="w-full rounded hover:opacity-60"
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div style={{ height: grid.paddingBottom }} />
+          </div>
+        </div>
+
+        <DeckPanel
+          deck={deck}
+          byId={cards.collection.byId}
+          issues={issues}
+          onRemove={remove}
+        />
       </div>
     </Page>
   )
