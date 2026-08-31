@@ -1,3 +1,4 @@
+import type { MdRarity } from '../data/types.ts'
 import type { Facets } from '../search/facets.ts'
 import type { CardQuery } from '../search/filter.ts'
 
@@ -15,6 +16,15 @@ function pretty(value: string): string {
 function numberOrNull(value: string): number | null {
   return value === '' ? null : Number(value)
 }
+
+/** Fest verdrahtet: Master Duel hat genau diese vier Stufen, die ändern sich nicht. */
+const MD_OPTIONEN: { wert: MdRarity | 'keine'; text: string }[] = [
+  { wert: 'N', text: 'N' },
+  { wert: 'R', text: 'R' },
+  { wert: 'SR', text: 'SR' },
+  { wert: 'UR', text: 'UR' },
+  { wert: 'keine', text: 'nicht in Master Duel' },
+]
 
 const field =
   'rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm outline-none focus:border-slate-500'
@@ -118,6 +128,25 @@ export function Filters({ facets, query, onChange }: Props) {
           {facets.races.map((v) => (
             <option key={v} value={v}>
               {v}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-xs text-slate-400">Master Duel</span>
+        <select
+          className={field}
+          value={query.md ?? ''}
+          onChange={(e) => {
+            const wert = e.target.value
+            onChange({ md: wert === '' ? null : (wert as MdRarity | 'keine') })
+          }}
+        >
+          <option value="">alle</option>
+          {MD_OPTIONEN.map(({ wert, text }) => (
+            <option key={wert} value={wert}>
+              {text}
             </option>
           ))}
         </select>

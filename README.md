@@ -8,7 +8,8 @@ Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
 ## Funktionen
 
 - Kartensuche über ~14'000 Karten mit Freitext sowie Filtern für Typ,
-  Attribut, Monsterart, Archetyp, Level/Rang, ATK und DEF
+  Attribut, Monsterart, Archetyp, Level/Rang, ATK, DEF und Master-Duel-Seltenheit
+  (inklusive „nicht in Master Duel")
 - Deck-Editor mit Main, Extra und Side Deck; Karten per Klick oder
   Drag and Drop hinzufügen, verschieben und entfernen
 - Laufende Regelprüfung: Zonengrössen, höchstens drei Kopien über alle

@@ -1,4 +1,4 @@
-import type { Card, DeckKind } from '../data/types.ts'
+import type { Card, DeckKind, MdRarity } from '../data/types.ts'
 
 /**
  * Alle Filterkriterien der Suche. Leere Listen und `null` bedeuten
@@ -14,6 +14,8 @@ export interface CardQuery {
   races: string[]
   archetype: string | null
   deck: DeckKind | null
+  /** Seltenheit in Master Duel; 'keine' sucht Karten, die es dort nicht gibt. */
+  md: MdRarity | 'keine' | null
   levelMin: number | null
   levelMax: number | null
   atkMin: number | null
@@ -29,6 +31,7 @@ export const EMPTY_QUERY: CardQuery = {
   races: [],
   archetype: null,
   deck: null,
+  md: null,
   levelMin: null,
   levelMax: null,
   atkMin: null,
@@ -114,6 +117,10 @@ export function filterCards(index: SearchIndex, query: CardQuery): Card[] {
     }
     if (query.races.length > 0 && !query.races.includes(card.race)) continue
     if (query.archetype !== null && card.archetype !== query.archetype) continue
+    if (query.md !== null) {
+      // 'keine' dreht den Filter um: gesucht sind die Karten ohne Master-Duel-Stufe.
+      if (query.md === 'keine' ? card.md !== undefined : card.md !== query.md) continue
+    }
     if (!inRange(card.level, query.levelMin, query.levelMax)) continue
     if (!inRange(knownValue(card.atk), query.atkMin, query.atkMax)) continue
     if (!inRange(knownValue(card.def), query.defMin, query.defMax)) continue
