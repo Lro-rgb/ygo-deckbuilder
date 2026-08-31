@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DeckPanel } from './components/DeckPanel.tsx'
 import { Filters } from './components/Filters.tsx'
 import { cardImageUrl } from './data/cards.ts'
@@ -14,6 +14,7 @@ import {
   type Zone,
 } from './deck/deck.ts'
 import { decodePayload, encodePayload, DRAG_FORMAT } from './deck/dragPayload.ts'
+import { loadDeck, saveDeck } from './deck/storage.ts'
 import { fromYdk, toYdk } from './deck/ydk.ts'
 import { useDebounced } from './hooks/useDebounced.ts'
 import { GAP, useGridWindow } from './hooks/useGridWindow.ts'
@@ -22,9 +23,15 @@ import { EMPTY_QUERY, filterCards, type CardQuery } from './search/filter.ts'
 export default function App() {
   const cards = useCards()
   const [query, setQuery] = useState<CardQuery>(EMPTY_QUERY)
-  const [deck, setDeck] = useState<Deck>(EMPTY_DECK)
+  const [deck, setDeck] = useState<Deck>(loadDeck)
   /** Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. */
   const [hinweis, setHinweis] = useState<string | null>(null)
+
+  // Jede Deckänderung sofort sichern; ~60 Zahlen als JSON sind auch synchron
+  // schnell genug, ein Entprellen wäre hier nur zusätzliche Mechanik.
+  useEffect(() => {
+    saveDeck(deck)
+  }, [deck])
 
   // Nur der Freitext wird entprellt; Dropdowns feuern ohnehin nur beim Auswählen.
   const text = useDebounced(query.text)
