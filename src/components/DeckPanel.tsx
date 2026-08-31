@@ -3,6 +3,7 @@ import { cardImageUrl } from '../data/cards.ts'
 import type { Card } from '../data/types.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
+import { OpeningHand } from './OpeningHand.tsx'
 
 interface Props {
   deck: Deck
@@ -138,6 +139,8 @@ export function DeckPanel({
             </ul>
           </section>
         ))}
+
+        <OpeningHand deck={deck} byId={byId} />
       </div>
     </aside>
   )
