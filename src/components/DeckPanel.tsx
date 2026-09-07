@@ -5,11 +5,10 @@ import { deckCost } from '../deck/cost.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
 import { encodeDeck } from '../deck/share.ts'
+import { DeckSlots } from './DeckSlots.tsx'
 import { DeckStats } from './DeckStats.tsx'
 import { OpeningHand } from './OpeningHand.tsx'
-
-const knopf =
-  'rounded border border-slate-700 px-2.5 py-1.5 text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40'
+import { knopf } from './ui.ts'
 
 interface Props {
   deck: Deck
@@ -22,6 +21,7 @@ interface Props {
   onClear: () => void
   /** null, solange es nichts rückgängig zu machen gibt. */
   onUndo: (() => void) | null
+  onLoadDeck: (deck: Deck) => void
 }
 
 const ZONES: Zone[] = ['main', 'extra', 'side']
@@ -39,6 +39,7 @@ export function DeckPanel({
   onImport,
   onClear,
   onUndo,
+  onLoadDeck,
 }: Props) {
   const total = deck.main.length + deck.extra.length + deck.side.length
   // Über 60 Karten summieren ist billiger als der Vergleich, den useMemo dafür bräuchte.
@@ -213,6 +214,8 @@ export function DeckPanel({
             </button>
           )}
         </div>
+
+        <DeckSlots deck={deck} onLoad={onLoadDeck} />
 
         {total === 0 ? (
           <p className="mt-2 rounded bg-slate-900 px-2 py-1 text-sm text-slate-400">

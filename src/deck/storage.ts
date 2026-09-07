@@ -13,13 +13,16 @@ function ids(value: unknown): number[] {
  * enthalten — darum wird jedes Feld geprüft, statt das JSON blind zu casten.
  * Unbekannte Karten-IDs bleiben drin, die meldet ohnehin validate().
  */
+export function deckFrom(value: unknown): Deck {
+  if (typeof value !== 'object' || value === null) return EMPTY_DECK
+  const record = value as Record<string, unknown>
+  return { main: ids(record.main), extra: ids(record.extra), side: ids(record.side) }
+}
+
 export function parseDeck(raw: string | null): Deck {
   if (raw === null) return EMPTY_DECK
   try {
-    const data: unknown = JSON.parse(raw)
-    if (typeof data !== 'object' || data === null) return EMPTY_DECK
-    const record = data as Record<string, unknown>
-    return { main: ids(record.main), extra: ids(record.extra), side: ids(record.side) }
+    return deckFrom(JSON.parse(raw))
   } catch {
     return EMPTY_DECK
   }

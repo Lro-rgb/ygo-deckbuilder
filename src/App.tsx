@@ -278,6 +278,10 @@ Klick fügt ${zielSide ? 'ins Side Deck' : 'in die passende Zone'} hinzu, Ziehen
             ändere(EMPTY_DECK)
             setHinweis(null)
           }}
+          onLoadDeck={(geladen) => {
+            ändere(geladen)
+            setHinweis(null)
+          }}
           onUndo={
             vorher === null
               ? null
