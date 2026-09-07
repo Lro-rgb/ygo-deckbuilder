@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "cards": "tsx scripts/fetch-cards.mts",
+    "deploy:images": "npx wrangler pages deploy public/cards --project-name ygo-card-images --branch main",
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {

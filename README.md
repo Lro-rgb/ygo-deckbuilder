@@ -83,6 +83,47 @@ diese Ausnahme indexiert Vite beim Start alle ~14'000 Bilder und blockiert
 dabei den Node-Prozess: das Ausliefern eines einzelnen Bildes dauert dann rund
 1.4 Sekunden statt 1 Millisekunde.
 
+## Deployment
+
+Die App ist statisch, das Ausliefern ist darum nur ein Kopieren von `dist/`.
+Der einzige Haken sind die ~14'000 Kartenbilder: 400 MB gehören weder ins
+Repository noch in jeden Build — sie bei jedem Deploy neu von der API zu holen
+dauert Minuten und riskiert die Stundensperre. Deshalb liegen die Bilder
+einmalig auf einem eigenen Cloudflare-Pages-Projekt, die App holt sie von dort.
+
+### Einmalig: Bilder hochladen
+
+```bash
+npm run cards                 # erzeugt public/cards/ lokal
+npx wrangler login            # einmalige Anmeldung im Browser
+npx wrangler pages project create ygo-card-images --production-branch main
+npm run deploy:images
+```
+
+Danach liegen die Bilder unter `https://ygo-card-images.pages.dev/<id>.jpg`.
+Ein Pages-Projekt fasst 20'000 Dateien; die ~14'000 Bilder passen mit Reserve
+für kommende Sets. Nach neuen Karten `npm run cards && npm run deploy:images`
+wiederholen, sonst fehlt zu einem neuen Eintrag in `cards.json` das Bild.
+
+### Die App selbst
+
+Im Cloudflare-Dashboard unter **Workers & Pages → Create → Pages** das
+GitHub-Repository verbinden und einstellen:
+
+| Feld | Wert |
+| --- | --- |
+| Build command | `npm run cards -- --no-images && npm run build` |
+| Output directory | `dist` |
+| Environment variable | `VITE_CARD_IMAGES` = `https://ygo-card-images.pages.dev` |
+
+`--no-images` lässt den Build nur `cards.json` erzeugen: ein einziger Request,
+ein paar Sekunden. Ohne `VITE_CARD_IMAGES` sucht die App die Bilder unter
+`/cards/` im eigenen Verzeichnis — genau das, was beim lokalen `npm run dev`
+gewollt ist.
+
+Eine eigene `base` steht nicht in `vite.config.ts`, die App liegt also im
+Wurzelverzeichnis der Domain und braucht dafür keine Einstellung.
+
 ## Quellen
 
 - Kartendaten und Bilder: [YGOPRODeck](https://ygoprodeck.com/) via

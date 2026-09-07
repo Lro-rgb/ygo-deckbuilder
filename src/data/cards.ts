@@ -19,8 +19,23 @@ export interface CardCollection {
  */
 const BASE: string = import.meta.env?.BASE_URL ?? '/'
 
+/**
+ * Woher die Kartenbilder kommen. Standard ist das eigene public/cards/, das
+ * `npm run cards` füllt. Beim Deployment liegen die ~14'000 Bilder dagegen
+ * einmalig woanders: sie bei jedem Build neu von der API zu holen dauert
+ * Minuten und belastet sie unnötig, ins Repository gehören 400 MB nicht.
+ * Der Schrägstrich am Ende darf fehlen, sonst wäre die Variable eine Falle.
+ */
+const konfiguriert = import.meta.env?.VITE_CARD_IMAGES ?? ''
+const IMAGES: string =
+  konfiguriert === ''
+    ? `${BASE}cards/`
+    : konfiguriert.endsWith('/')
+      ? konfiguriert
+      : `${konfiguriert}/`
+
 export function cardImageUrl(cardId: number): string {
-  return `${BASE}cards/${cardId}.jpg`
+  return `${IMAGES}${cardId}.jpg`
 }
 
 export function toCollection(db: CardDatabase): CardCollection {
