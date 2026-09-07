@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { cardImageUrl } from '../data/cards.ts'
 import type { Card } from '../data/types.ts'
 import type { Deck } from '../deck/deck.ts'
 import { drawHand, openingOdds } from '../deck/odds.ts'
+import { CardImage } from './CardImage.tsx'
+import { knopf } from './ui.ts'
 
 /** Starthand dessen, der beginnt. Wer als Zweiter spielt, zieht eine Karte mehr. */
 const HAND = 5
@@ -30,7 +31,7 @@ export function OpeningHand({ deck, byId }: Props) {
           onClick={() => {
             setHand(drawHand(deck.main, HAND))
           }}
-          className="rounded border border-slate-700 px-2 py-1 text-sm text-slate-300 hover:border-slate-500"
+          className={knopf}
         >
           Hand ziehen
         </button>
@@ -39,16 +40,8 @@ export function OpeningHand({ deck, byId }: Props) {
       {hand.length > 0 && (
         <ul className="mt-2 grid grid-cols-5 gap-1">
           {hand.map((id, index) => (
-            <li key={`${String(id)}-${String(index)}`}>
-              <img
-                src={cardImageUrl(id)}
-                alt={byId.get(id)?.name ?? String(id)}
-                title={byId.get(id)?.name ?? String(id)}
-                width={168}
-                height={246}
-                loading="lazy"
-                className="w-full rounded"
-              />
+            <li key={`${String(id)}-${String(index)}`} title={byId.get(id)?.name ?? String(id)}>
+              <CardImage id={id} name={byId.get(id)?.name ?? String(id)} />
             </li>
           ))}
         </ul>

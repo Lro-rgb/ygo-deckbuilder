@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Deck } from '../deck/deck.ts'
 import { loadDecks, saveDecks, type SavedDecks } from '../deck/decks.ts'
-import { knopf } from './ui.ts'
+import { feld, knopf } from './ui.ts'
 
 interface Props {
   deck: Deck
@@ -42,7 +42,7 @@ export function DeckSlots({ deck, onLoad }: Props) {
   }
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+    <div className="mt-2 flex items-center gap-2 text-sm">
       <select
         value={aktiv}
         onChange={(e) => {
@@ -52,7 +52,7 @@ export function DeckSlots({ deck, onLoad }: Props) {
           if (gespeichert !== undefined) onLoad(gespeichert)
         }}
         disabled={namen.length === 0}
-        className={knopf}
+        className={`${feld} min-w-0 flex-1 disabled:opacity-40`}
       >
         <option value="">{namen.length === 0 ? 'keine Decks gespeichert' : 'Deck laden…'}</option>
         {namen.map((name) => (
@@ -62,10 +62,10 @@ export function DeckSlots({ deck, onLoad }: Props) {
         ))}
       </select>
       <button type="button" onClick={speichere} disabled={total === 0} className={knopf}>
-        speichern als…
+        Speichern
       </button>
       <button type="button" onClick={lösche} disabled={aktiv === ''} className={knopf}>
-        löschen
+        Löschen
       </button>
     </div>
   )

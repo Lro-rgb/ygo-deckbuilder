@@ -1,6 +1,7 @@
 import type { MdRarity } from '../data/types.ts'
 import type { Facets } from '../search/facets.ts'
 import type { CardQuery } from '../search/filter.ts'
+import { feld } from './ui.ts'
 
 interface Props {
   facets: Facets
@@ -26,9 +27,6 @@ const MD_OPTIONEN: { wert: MdRarity | 'keine'; text: string }[] = [
   { wert: 'keine', text: 'nicht in Master Duel' },
 ]
 
-const field =
-  'rounded border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm outline-none focus:border-slate-500'
-
 interface RangeProps {
   label: string
   min: number | null
@@ -53,7 +51,7 @@ function Range({ label, min, max, step, onMin, onMax }: RangeProps) {
           onChange={(e) => {
             onMin(numberOrNull(e.target.value))
           }}
-          className={`${field} w-20`}
+          className={`${feld} w-full min-w-0`}
         />
         <input
           type="number"
@@ -64,7 +62,7 @@ function Range({ label, min, max, step, onMin, onMax }: RangeProps) {
           onChange={(e) => {
             onMax(numberOrNull(e.target.value))
           }}
-          className={`${field} w-20`}
+          className={`${feld} w-full min-w-0`}
         />
       </span>
     </label>
@@ -78,11 +76,11 @@ export function Filters({ facets, query, onChange }: Props) {
   }
 
   return (
-    <div className="mt-4 flex flex-wrap items-end gap-3">
+    <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] items-end gap-3">
       <label className="flex flex-col gap-1">
         <span className="text-xs text-slate-400">Typ</span>
         <select
-          className={field}
+          className={`${feld} w-full`}
           value={query.frameTypes[0] ?? ''}
           onChange={(e) => {
             pick('frameTypes', e.target.value)
@@ -100,7 +98,7 @@ export function Filters({ facets, query, onChange }: Props) {
       <label className="flex flex-col gap-1">
         <span className="text-xs text-slate-400">Attribut</span>
         <select
-          className={field}
+          className={`${feld} w-full`}
           value={query.attributes[0] ?? ''}
           onChange={(e) => {
             pick('attributes', e.target.value)
@@ -118,7 +116,7 @@ export function Filters({ facets, query, onChange }: Props) {
       <label className="flex flex-col gap-1">
         <span className="text-xs text-slate-400">Monsterart</span>
         <select
-          className={field}
+          className={`${feld} w-full`}
           value={query.races[0] ?? ''}
           onChange={(e) => {
             pick('races', e.target.value)
@@ -136,7 +134,7 @@ export function Filters({ facets, query, onChange }: Props) {
       <label className="flex flex-col gap-1">
         <span className="text-xs text-slate-400">Master Duel</span>
         <select
-          className={field}
+          className={`${feld} w-full`}
           value={query.md ?? ''}
           onChange={(e) => {
             const wert = e.target.value
@@ -156,7 +154,7 @@ export function Filters({ facets, query, onChange }: Props) {
         <span className="text-xs text-slate-400">Archetyp</span>
         {/* datalist statt Autocomplete-Komponente: 656 Einträge, native Suche im Browser */}
         <input
-          className={`${field} w-48`}
+          className={`${feld} w-full`}
           list="archetypes"
           placeholder="alle"
           value={query.archetype ?? ''}

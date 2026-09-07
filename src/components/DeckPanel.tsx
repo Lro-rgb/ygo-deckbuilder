@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
-import { cardImageUrl } from '../data/cards.ts'
 import type { Card, MdRarity } from '../data/types.ts'
 import { deckCost } from '../deck/cost.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
 import { encodeDeck } from '../deck/share.ts'
+import { CardImage } from './CardImage.tsx'
 import { DeckSlots } from './DeckSlots.tsx'
 import { DeckStats } from './DeckStats.tsx'
 import { OpeningHand } from './OpeningHand.tsx'
-import { knopf } from './ui.ts'
+import { knopf, knopfPrimär, zusammenfaltbar } from './ui.ts'
 
 interface Props {
   deck: Deck
@@ -57,176 +57,194 @@ export function DeckPanel({
   const [geteilt, setGeteilt] = useState<string | null>(null)
   const grossansicht = useRef<HTMLDialogElement>(null)
 
+  const teilen = (): void => {
+    const url = `${location.origin}${location.pathname}#${encodeDeck(deck)}`
+    void navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setGeteilt('Link kopiert')
+      })
+      .catch(() => {
+        // Ohne HTTPS oder ohne Erlaubnis gibt es keine Zwischenablage;
+        // im Dialog lässt sich der Link wenigstens von Hand kopieren.
+        window.prompt('Link zum Teilen', url)
+      })
+      .finally(() =>
+        setTimeout(() => {
+          setGeteilt(null)
+        }, 2000),
+      )
+  }
+
   /**
    * Eine Deckzone. Dieselbe Funktion malt die schmale Spalte und die
    * Grossansicht, nur die Mindestbreite pro Karte unterscheidet sich —
    * auto-fill bestimmt die Spaltenzahl selbst, je nach verfügbarer Breite.
    * So können die beiden Ansichten gar nicht auseinanderlaufen.
    */
-  const zoneAnsicht = (zone: Zone, spalten: string) => (
-    <section
-      key={zone}
-      // Ohne preventDefault im dragOver lässt der Browser gar nicht fallen.
-      onDragOver={(e) => {
-        e.preventDefault()
-        setÜber(zone)
-      }}
-      onDragLeave={() => {
-        setÜber((current) => (current === zone ? null : current))
-      }}
-      onDrop={(e) => {
-        e.preventDefault()
-        setÜber(null)
-        onDropInZone(zone, e.dataTransfer.getData(DRAG_FORMAT))
-      }}
-      className={`mt-4 rounded border-2 border-dashed p-1 transition-colors ${
-        über === zone ? 'border-sky-500 bg-sky-950/40' : 'border-transparent'
-      }`}
-    >
-      <h3 className="text-sm text-slate-400">
-        {ZONE_LABELS[zone]} — {deck[zone].length}
-        {zone === 'main'
-          ? ` / ${String(ZONE_LIMITS.main.min)}–${String(ZONE_LIMITS.main.max)}`
-          : ` / ${String(ZONE_LIMITS[zone].max)}`}
-      </h3>
+  const zoneAnsicht = (zone: Zone, spalten: string) => {
+    const { min, max } = ZONE_LIMITS[zone]
+    const anzahl = deck[zone].length
+    const grenze = zone === 'main' ? `${String(min)}–${String(max)}` : String(max)
 
-      <ul className={`mt-1 grid min-h-12 gap-1 ${spalten}`}>
-        {deck[zone].map((id, index) => {
-          const card = byId.get(id)
-          return (
-            <li key={`${String(id)}-${String(index)}`}>
-              <button
-                type="button"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData(DRAG_FORMAT, encodePayload({ kind: 'deck', zone, index }))
-                  e.dataTransfer.effectAllowed = 'move'
-                }}
-                onClick={() => {
-                  onRemove(zone, index)
-                }}
-                title={`${card?.name ?? String(id)} — Klick entfernt, Ziehen verschiebt`}
-                className="block w-full cursor-grab active:cursor-grabbing"
-              >
-                <img
-                  src={cardImageUrl(id)}
-                  alt={card?.name ?? String(id)}
-                  width={168}
-                  height={246}
-                  loading="lazy"
-                  draggable={false}
-                  className="w-full rounded hover:opacity-60"
-                />
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-    </section>
-  )
+    return (
+      <section
+        key={zone}
+        // Ohne preventDefault im dragOver lässt der Browser gar nicht fallen.
+        onDragOver={(e) => {
+          e.preventDefault()
+          setÜber(zone)
+        }}
+        onDragLeave={() => {
+          setÜber((current) => (current === zone ? null : current))
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          setÜber(null)
+          onDropInZone(zone, e.dataTransfer.getData(DRAG_FORMAT))
+        }}
+        className={`mt-3 rounded-lg border p-2 transition-colors ${
+          über === zone ? 'border-sky-500 bg-sky-950/40' : 'border-slate-800'
+        }`}
+      >
+        <h3 className="flex items-baseline justify-between gap-2 text-xs font-medium tracking-wide text-slate-400 uppercase">
+          {ZONE_LABELS[zone]}
+          <span className="tabular-nums normal-case">
+            {anzahl}
+            <span className="text-slate-600"> / {grenze}</span>
+          </span>
+        </h3>
+
+        {anzahl === 0 ? (
+          <p className="mt-2 rounded border border-dashed border-slate-800 py-3 text-center text-xs text-slate-600">
+            leer
+          </p>
+        ) : (
+          <ul className={`mt-2 grid gap-1 ${spalten}`}>
+            {deck[zone].map((id, index) => {
+              const card = byId.get(id)
+              const name = card?.name ?? String(id)
+              return (
+                <li key={`${String(id)}-${String(index)}`}>
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        DRAG_FORMAT,
+                        encodePayload({ kind: 'deck', zone, index }),
+                      )
+                      e.dataTransfer.effectAllowed = 'move'
+                    }}
+                    onClick={() => {
+                      onRemove(zone, index)
+                    }}
+                    title={`${name} — Klick entfernt, Ziehen verschiebt`}
+                    className="block w-full cursor-grab rounded transition-opacity hover:opacity-50 active:cursor-grabbing"
+                  >
+                    <CardImage id={id} name={name} />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+    )
+  }
 
   return (
     <aside className="w-full shrink-0 lg:w-80">
       {/* Erst ab lg klebt die Spalte; auf schmalen Schirmen steht sie unter der Suche. */}
-      <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
-        <h2 className="text-lg font-semibold">Deck ({total})</h2>
+      <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="text-lg font-semibold">Deck</h2>
+          <span className="tabular-nums text-slate-400">{total} Karten</span>
+        </div>
 
         {total > 0 && (
-          <p className="text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-400">
             <span title="Summe der Cardmarket-Richtpreise, eine Momentaufnahme">
               {euro.format(kosten.euro)}
             </span>
-            <span
-              className="block"
-              title="Master Duel führt vier getrennte CP-Töpfe; sie lassen sich nicht gegeneinander tauschen"
-            >
+            <span className="text-slate-600"> · </span>
+            <span title="Master Duel führt vier getrennte CP-Töpfe; sie lassen sich nicht gegeneinander tauschen">
               {cp.length === 0
-                ? 'keine Karte in Master Duel'
-                : cp.map((stufe) => `${zahl.format(kosten.cp[stufe])} ${stufe}-CP`).join(' · ')}
+                ? 'nicht in Master Duel'
+                : cp.map((stufe) => `${zahl.format(kosten.cp[stufe])} ${stufe}`).join(' · ')}
             </span>
             {fehlt.length > 0 && (
-              <span className="block text-xs text-slate-500">
-                nicht enthalten: {fehlt.join(', ')}
-              </span>
+              <span className="block text-xs text-slate-500">ohne: {fehlt.join(', ')}</span>
             )}
           </p>
         )}
 
-        <div className="mt-2 flex flex-wrap gap-2 text-sm">
+        {/* Die eine Aktion, die man ständig braucht — der Rest liegt eine Ebene tiefer. */}
+        <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={() => grossansicht.current?.showModal()}
             disabled={total === 0}
-            className={knopf}
+            className={`${knopfPrimär} flex-1`}
           >
-            gross anzeigen
+            Deck ansehen
           </button>
-          <button type="button" onClick={onExport} className={knopf} disabled={total === 0}>
-            .ydk speichern
-          </button>
-          {/* Der Datei-Dialog gehoert dem input; das label macht ihn klickbar. */}
-          <label className={`${knopf} cursor-pointer`}>
-            .ydk laden
-            <input
-              type="file"
-              accept=".ydk,text/plain"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) onImport(file)
-                // Zuruecksetzen, damit dieselbe Datei erneut gewaehlt werden kann.
-                e.target.value = ''
-              }}
-            />
-          </label>
-          <button
-            type="button"
-            onClick={() => {
-              const url = `${location.origin}${location.pathname}#${encodeDeck(deck)}`
-              void navigator.clipboard
-                .writeText(url)
-                .then(() => {
-                  setGeteilt('Link kopiert')
-                })
-                .catch(() => {
-                  // Ohne HTTPS oder ohne Erlaubnis gibt es keine Zwischenablage;
-                  // im Dialog lässt sich der Link wenigstens von Hand kopieren.
-                  window.prompt('Link zum Teilen', url)
-                })
-                .finally(() =>
-                  setTimeout(() => {
-                    setGeteilt(null)
-                  }, 2000),
-                )
-            }}
-            disabled={total === 0}
-            className={knopf}
-          >
-            {geteilt ?? 'Link teilen'}
-          </button>
-          <button type="button" onClick={onClear} className={knopf} disabled={total === 0}>
-            leeren
-          </button>
-          {/* Ein Klick auf eine Karte entfernt sie sofort — ohne Rückweg wäre das gemein. */}
           {onUndo !== null && (
-            <button type="button" onClick={onUndo} className={`${knopf} border-sky-700`}>
-              rückgängig
+            <button type="button" onClick={onUndo} className={knopf} title="Letzte Änderung zurücknehmen">
+              Rückgängig
             </button>
           )}
         </div>
 
         <DeckSlots deck={deck} onLoad={onLoadDeck} />
 
+        {/*
+          Datei und Teilen braucht man selten. Als natives details bleibt es
+          erreichbar, ohne die Spalte mit vier weiteren Knöpfen zu füllen —
+          Aufklappen, Tastatur und Zustand kommen vom Browser.
+        */}
+        <details className="mt-2">
+          <summary className={`${zusammenfaltbar} cursor-pointer list-none`}>
+            Datei &amp; Teilen
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button type="button" onClick={teilen} disabled={total === 0} className={knopf}>
+              {geteilt ?? 'Link teilen'}
+            </button>
+            <button type="button" onClick={onExport} className={knopf} disabled={total === 0}>
+              .ydk speichern
+            </button>
+            {/* Der Datei-Dialog gehoert dem input; das label macht ihn klickbar. */}
+            <label className={`${knopf} cursor-pointer`}>
+              .ydk laden
+              <input
+                type="file"
+                accept=".ydk,text/plain"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) onImport(file)
+                  // Zuruecksetzen, damit dieselbe Datei erneut gewaehlt werden kann.
+                  e.target.value = ''
+                }}
+              />
+            </label>
+            <button type="button" onClick={onClear} className={knopf} disabled={total === 0}>
+              Deck leeren
+            </button>
+          </div>
+        </details>
+
         {total === 0 ? (
-          <p className="mt-2 rounded bg-slate-900 px-2 py-1 text-sm text-slate-400">
+          <p className="mt-3 rounded border border-slate-800 bg-slate-900 px-2.5 py-2 text-sm text-slate-400">
             Karte anklicken oder in eine Zone ziehen.
           </p>
         ) : issues.length === 0 ? (
-          <p className="mt-2 rounded bg-emerald-950 px-2 py-1 text-sm text-emerald-300">
+          <p className="mt-3 rounded border border-emerald-900 bg-emerald-950/60 px-2.5 py-2 text-sm text-emerald-300">
             Deck ist regelkonform
           </p>
         ) : (
-          <ul className="mt-2 space-y-1 rounded bg-amber-950 px-2 py-1 text-sm text-amber-300">
+          <ul className="mt-3 space-y-1 rounded border border-amber-900 bg-amber-950/60 px-2.5 py-2 text-sm text-amber-300">
             {issues.map((issue) => (
               <li key={issue}>{issue}</li>
             ))}
@@ -251,11 +269,13 @@ export function DeckPanel({
         }}
         className="m-auto max-h-[90vh] w-[min(94vw,72rem)] overflow-y-auto rounded-lg border border-slate-700 bg-slate-950 p-6 text-slate-100 backdrop:bg-slate-950/80"
       >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Deck ({total})</h2>
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-lg font-semibold">
+            Deck <span className="font-normal text-slate-400">· {total} Karten</span>
+          </h2>
           <form method="dialog">
             <button type="submit" className={knopf}>
-              schliessen
+              Schliessen
             </button>
           </form>
         </div>

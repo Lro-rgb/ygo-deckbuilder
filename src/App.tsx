@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { CardImage } from './components/CardImage.tsx'
 import { DeckPanel } from './components/DeckPanel.tsx'
 import { Filters } from './components/Filters.tsx'
-import { cardImageUrl } from './data/cards.ts'
+import { knopf } from './components/ui.ts'
 import type { Card } from './data/types.ts'
 import { useCards } from './data/useCards.ts'
 import {
@@ -178,13 +179,13 @@ export default function App() {
               patch({ text: e.target.value })
             }}
             placeholder="Karte suchen …"
-            className="w-full max-w-md rounded border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
+            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 outline-none focus:border-slate-500"
           />
 
           <Filters facets={cards.facets} query={query} onChange={patch} />
 
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-400">
-            <span>
+            <span className="tabular-nums">
               {results.length} von {cards.collection.cards.length} Karten
             </span>
             <button
@@ -192,7 +193,7 @@ export default function App() {
               onClick={() => {
                 setQuery(EMPTY_QUERY)
               }}
-              className="rounded border border-slate-700 px-2.5 py-1.5 hover:border-slate-500"
+              className={knopf}
             >
               Filter zurücksetzen
             </button>
@@ -208,11 +209,11 @@ export default function App() {
               onClick={() => {
                 setZielSide((v) => !v)
               }}
-              className={`rounded border px-2.5 py-1.5 ${
+              className={
                 zielSide
-                  ? 'border-sky-500 bg-sky-950/60 text-sky-300'
-                  : 'border-slate-700 hover:border-slate-500'
-              }`}
+                  ? 'rounded border border-sky-600 bg-sky-950/60 px-2.5 py-1.5 text-sm text-sky-200'
+                  : knopf
+              }
             >
               Ziel: {zielSide ? 'Side Deck' : 'automatisch'}
             </button>
@@ -247,17 +248,9 @@ export default function App() {
                     title={`${card.name}
 ${cardCostLabel(card)}
 Klick fügt ${zielSide ? 'ins Side Deck' : 'in die passende Zone'} hinzu, Ziehen in eine Zone`}
-                    className="block w-full cursor-grab active:cursor-grabbing"
+                    className="block w-full cursor-grab rounded transition-opacity hover:opacity-60 active:cursor-grabbing"
                   >
-                    <img
-                      src={cardImageUrl(card.id)}
-                      alt={card.name}
-                      loading="lazy"
-                      width={168}
-                      height={246}
-                      draggable={false}
-                      className="w-full rounded hover:opacity-60"
-                    />
+                    <CardImage id={card.id} name={card.name} />
                   </button>
                 </li>
               ))}
