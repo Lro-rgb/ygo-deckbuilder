@@ -5,7 +5,11 @@ import { deckCost } from '../deck/cost.ts'
 import { ZONE_LABELS, ZONE_LIMITS, type Deck, type Zone } from '../deck/deck.ts'
 import { DRAG_FORMAT, encodePayload } from '../deck/dragPayload.ts'
 import { encodeDeck } from '../deck/share.ts'
+import { DeckStats } from './DeckStats.tsx'
 import { OpeningHand } from './OpeningHand.tsx'
+
+const knopf =
+  'rounded border border-slate-700 px-2.5 py-1.5 text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40'
 
 interface Props {
   deck: Deck
@@ -24,9 +28,6 @@ const ZONES: Zone[] = ['main', 'extra', 'side']
 
 const zahl = new Intl.NumberFormat('de-CH')
 const euro = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'EUR' })
-
-const knopf =
-  'rounded border border-slate-700 px-2.5 py-1.5 text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40'
 
 export function DeckPanel({
   deck,
@@ -255,6 +256,7 @@ export function DeckPanel({
             </button>
           </form>
         </div>
+        <DeckStats deck={deck} byId={byId} />
         {ZONES.map((zone) => zoneAnsicht(zone, 'grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))]'))}
       </dialog>
     </aside>
