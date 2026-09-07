@@ -5,6 +5,8 @@ Deck-Editor mit Main/Extra/Side, Banlist-Prüfung und `.ydk`-Import/Export.
 
 Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
 
+![Deckbuilder: Kartensuche mit Filtern links, Deck mit Kosten und Regelprüfung rechts](docs/deck-editor.jpg)
+
 ## Funktionen
 
 - Kartensuche über ~14'000 Karten mit Freitext sowie Filtern für Typ,
@@ -29,6 +31,20 @@ Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
   Deck im URL-Fragment trägt — kein Server, keine Datenbank
 - Starthand: Chance auf jede Karte in den ersten fünf Karten, exakt über die
   hypergeometrische Verteilung gerechnet statt simuliert, dazu eine Beispielhand
+
+## Ansichten
+
+Kartensuche mit Filtern — hier alles, was „Blue-Eyes" im Namen trägt:
+
+![Suche nach „Blue-Eyes", 58 von 14291 Karten](docs/suche.jpg)
+
+Die Grossansicht zeigt das ganze Deck auf einmal, darüber die Auswertung:
+
+![Grossansicht mit Auswertung: Monster, Zauber und Fallen, Stufenkurve, Extra Deck nach Art](docs/grossansicht.jpg)
+
+Starthand mit den exakt gerechneten Chancen:
+
+![Starthand aus fünf Karten und die Chancenliste](docs/starthand.jpg)
 
 ## Einrichten
 
@@ -145,5 +161,7 @@ Wurzelverzeichnis der Domain und braucht dafür keine Einstellung.
 - Craft-Kosten in Master Duel: 30 CP je Kopie, in der Sorte der Karte. Die vier
   Töpfe (N, R, SR, UR) sind getrennt und nicht gegeneinander tauschbar — eine
   UR kostet 30 UR-CP, nicht 30 beliebige CP.
+- Die Screenshots in `docs/` zeigen dieselben Kartenbilder von YGOPRODeck; das
+  abgebildete Blue-Eyes-Deck ist ein Beispiel, keine Empfehlung.
 - Yu-Gi-Oh! ist eine Marke von Konami. Dieses Projekt ist ein privates
   Lernprojekt ohne Verbindung zu Konami.
