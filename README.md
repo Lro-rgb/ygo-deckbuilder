@@ -101,6 +101,10 @@ npm run deploy:images
 ```
 
 Danach liegen die Bilder unter `https://ygo-card-images.pages.dev/<id>.jpg`.
+`wrangler pages deploy` warnt dabei, `wrangler.jsonc` habe kein
+`pages_build_output_dir`, und ignoriert die Datei. Das ist richtig so: die
+Konfiguration gehört dem Worker der App, mit dem Bilder-Projekt hat sie nichts
+zu tun.
 Ein Pages-Projekt fasst 20'000 Dateien; die ~14'000 Bilder passen mit Reserve
 für kommende Sets. Nach neuen Karten `npm run cards && npm run deploy:images`
 wiederholen, sonst fehlt zu einem neuen Eintrag in `cards.json` das Bild.
