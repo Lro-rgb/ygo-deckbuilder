@@ -27,7 +27,7 @@ const MD_OPTIONEN: { wert: MdRarity | 'keine'; text: string }[] = [
 ]
 
 const field =
-  'rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm outline-none focus:border-slate-500'
+  'rounded border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm outline-none focus:border-slate-500'
 
 interface RangeProps {
   label: string

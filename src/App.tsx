@@ -30,6 +30,13 @@ export default function App() {
   const [deck, setDeck] = useState<Deck>(() => decodeDeck(location.hash) ?? loadDeck())
   /** Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. */
   const [hinweis, setHinweis] = useState<string | null>(null)
+  /**
+   * Klick auf eine Suchkarte geht normalerweise in die natürliche Zone. Das
+   * Side Deck ist so nie erreichbar — Drag & Drop kann es zwar, feuert aber
+   * auf Touch-Geräten gar nicht (HTML5-DnD ist reine Maus-API). Dieser
+   * Umschalter macht das Side Deck auch ohne Drag erreichbar.
+   */
+  const [zielSide, setZielSide] = useState(false)
   /** Deckstand vor der letzten Änderung. Eine Stufe reicht gegen Fehlklicks. */
   const [vorher, setVorher] = useState<Deck | null>(null)
 
@@ -78,8 +85,11 @@ export default function App() {
     setQuery((old) => ({ ...old, ...part }))
   }
 
-  /** Legt die Karte in ihre natürliche Zone; Extra-Deck-Karten also ins Extra Deck. */
-  const add = (card: Card, zone: Zone = card.deck): void => {
+  /**
+   * Legt die Karte in ihre natürliche Zone (Extra-Deck-Karten also ins Extra
+   * Deck) — oder ins Side Deck, wenn der Umschalter aktiv ist.
+   */
+  const add = (card: Card, zone: Zone = zielSide ? 'side' : card.deck): void => {
     const grund = whyNotAdd(deck, card, zone)
     if (grund !== null) {
       setHinweis(grund)
@@ -182,9 +192,29 @@ export default function App() {
               onClick={() => {
                 setQuery(EMPTY_QUERY)
               }}
-              className="rounded border border-slate-700 px-2 py-1 hover:border-slate-500"
+              className="rounded border border-slate-700 px-2.5 py-1.5 hover:border-slate-500"
             >
               Filter zurücksetzen
+            </button>
+            {/*
+              Klick fügt sonst immer in die natürliche Zone ein — das Side
+              Deck erreicht man normalerweise nur per Drag & Drop, was auf
+              Touch-Geräten gar nicht feuert (HTML5-DnD ist reine Maus-API).
+              Dieser Umschalter macht das Side Deck auch klickbar erreichbar.
+            */}
+            <button
+              type="button"
+              aria-pressed={zielSide}
+              onClick={() => {
+                setZielSide((v) => !v)
+              }}
+              className={`rounded border px-2.5 py-1.5 ${
+                zielSide
+                  ? 'border-sky-500 bg-sky-950/60 text-sky-300'
+                  : 'border-slate-700 hover:border-slate-500'
+              }`}
+            >
+              Ziel: {zielSide ? 'Side Deck' : 'automatisch'}
             </button>
             {hinweis !== null && <span className="text-amber-400">{hinweis}</span>}
           </div>
@@ -216,7 +246,7 @@ export default function App() {
                     }}
                     title={`${card.name}
 ${cardCostLabel(card)}
-Klick fügt hinzu, Ziehen in eine Zone`}
+Klick fügt ${zielSide ? 'ins Side Deck' : 'in die passende Zone'} hinzu, Ziehen in eine Zone`}
                     className="block w-full cursor-grab active:cursor-grabbing"
                   >
                     <img
@@ -265,8 +295,8 @@ Klick fügt hinzu, Ziehen in eine Zone`}
 
 function Page({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-950 p-8 text-slate-100">
-      <h1 className="text-2xl font-semibold">Yu-Gi-Oh! Deckbuilder</h1>
+    <div className="min-h-screen bg-slate-950 p-4 text-slate-100 sm:p-8">
+      <h1 className="text-xl font-semibold sm:text-2xl">Yu-Gi-Oh! Deckbuilder</h1>
       {children}
     </div>
   )

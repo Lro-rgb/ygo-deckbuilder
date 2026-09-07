@@ -26,7 +26,7 @@ const zahl = new Intl.NumberFormat('de-CH')
 const euro = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'EUR' })
 
 const knopf =
-  'rounded border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40'
+  'rounded border border-slate-700 px-2.5 py-1.5 text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40'
 
 export function DeckPanel({
   deck,
@@ -57,8 +57,9 @@ export function DeckPanel({
 
   /**
    * Eine Deckzone. Dieselbe Funktion malt die schmale Spalte und die
-   * Grossansicht, nur die Spaltenzahl unterscheidet sich — so können die
-   * beiden Ansichten gar nicht auseinanderlaufen.
+   * Grossansicht, nur die Mindestbreite pro Karte unterscheidet sich —
+   * auto-fill bestimmt die Spaltenzahl selbst, je nach verfügbarer Breite.
+   * So können die beiden Ansichten gar nicht auseinanderlaufen.
    */
   const zoneAnsicht = (zone: Zone, spalten: string) => (
     <section
@@ -228,7 +229,7 @@ export function DeckPanel({
           </ul>
         )}
 
-        {ZONES.map((zone) => zoneAnsicht(zone, 'grid-cols-6'))}
+        {ZONES.map((zone) => zoneAnsicht(zone, 'grid-cols-[repeat(auto-fill,minmax(4rem,1fr))]'))}
 
         <OpeningHand deck={deck} byId={byId} />
       </div>
@@ -254,7 +255,7 @@ export function DeckPanel({
             </button>
           </form>
         </div>
-        {ZONES.map((zone) => zoneAnsicht(zone, 'grid-cols-6 sm:grid-cols-8 lg:grid-cols-10'))}
+        {ZONES.map((zone) => zoneAnsicht(zone, 'grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))]'))}
       </dialog>
     </aside>
   )
