@@ -17,7 +17,11 @@ Stack: React + TypeScript, Vite, Tailwind CSS. Kein Backend.
 - Laufende Regelprüfung: Zonengrössen, höchstens drei Kopien über alle
   Zonen zusammen und die aktuelle TCG-Banlist
 - Import und Export im `.ydk`-Format
-- Das Deck überlebt einen Reload: es liegt im `localStorage` des Browsers
+- Das Deck überlebt einen Reload: es liegt im `localStorage` des Browsers;
+  daneben lassen sich beliebig viele Decks unter einem Namen ablegen und
+  wieder laden
+- Auswertung in der Grossansicht: Verhältnis von Monstern, Zaubern und Fallen,
+  Stufenkurve der Monster und das Extra Deck nach Art
 - Kosten des Decks: Craft-Preis in Master Duel je CP-Topf (N, R, SR, UR sind
   getrennte Währungen) und Summe der Cardmarket-Richtpreise; Karten ohne
   Angabe werden ausgewiesen statt mitgerechnet
