@@ -9,7 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "cards": "tsx scripts/fetch-cards.mts",
-    "deploy:images": "npx wrangler pages deploy public/cards --project-name ygo-card-images --branch main",
+    "deploy:images": "wrangler pages deploy public/cards --project-name ygo-card-images --branch main",
     "test": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
@@ -26,6 +26,7 @@
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.13",
     "typescript": "~6.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "wrangler": "^4.129.0"
   }
 }

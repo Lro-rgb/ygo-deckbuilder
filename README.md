@@ -107,19 +107,27 @@ wiederholen, sonst fehlt zu einem neuen Eintrag in `cards.json` das Bild.
 
 ### Die App selbst
 
-Im Cloudflare-Dashboard unter **Workers & Pages → Create → Pages** das
-GitHub-Repository verbinden und einstellen:
+Cloudflare legt neue Projekte als Worker an, nicht mehr als Pages-Projekt.
+Wohin die Dateien gehören, steht darum in `wrangler.jsonc` im Repository und
+nicht im Formular; im Dashboard bleiben nur zwei Felder zu füllen:
 
 | Feld | Wert |
 | --- | --- |
 | Build command | `npm run cards -- --no-images && npm run build` |
-| Output directory | `dist` |
-| Environment variable | `VITE_CARD_IMAGES` = `https://ygo-card-images.pages.dev` |
+| Deploy command | `npx wrangler deploy` (Vorgabe) |
+| Build variable | `VITE_CARD_IMAGES` = `https://ygo-card-images.pages.dev` |
+
+`VITE_CARD_IMAGES` muss eine **Build**-Variable sein, keine Laufzeitvariable:
+Vite setzt den Wert beim Bauen fest in das Bundle ein, zur Laufzeit gibt es
+ihn nicht mehr. Ohne die Variable sucht die App die Bilder unter `/cards/` im
+eigenen Verzeichnis — genau das, was beim lokalen `npm run dev` gewollt ist.
 
 `--no-images` lässt den Build nur `cards.json` erzeugen: ein einziger Request,
-ein paar Sekunden. Ohne `VITE_CARD_IMAGES` sucht die App die Bilder unter
-`/cards/` im eigenen Verzeichnis — genau das, was beim lokalen `npm run dev`
-gewollt ist.
+ein paar Sekunden, weit innerhalb der 20 Minuten Build-Zeit.
+
+`public/.assetsignore` hält die Bilder aus dem App-Deployment heraus. Auf
+Cloudflare gibt es sie ohnehin nicht (`--no-images`); die Datei wirkt lokal,
+wo `dist/` nach einem vollen `npm run cards` alle 14'000 Bilder enthält.
 
 Eine eigene `base` steht nicht in `vite.config.ts`, die App liegt also im
 Wurzelverzeichnis der Domain und braucht dafür keine Einstellung.

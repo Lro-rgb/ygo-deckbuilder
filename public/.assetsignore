@@ -1,0 +1,3 @@
+# Die Kartenbilder liegen im eigenen Projekt (siehe README, Deployment).
+# Ohne diese Zeile lädt ein lokales "wrangler deploy" sie ein zweites Mal hoch.
+cards/
