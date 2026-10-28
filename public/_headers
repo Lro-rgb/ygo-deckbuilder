@@ -1,0 +1,10 @@
+# Sicherheits-Header für das Deployment auf Cloudflare. Die Datei selbst wird
+# nicht ausgeliefert, Cloudflare liest sie nur aus.
+#
+# Die App lädt nur eigene Dateien und die Kartenbilder. Steht VITE_CARD_IMAGES
+# auf einem anderen Host, muss er hier unter img-src nachgetragen werden.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://ygo-card-images.pages.dev; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

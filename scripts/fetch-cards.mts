@@ -199,6 +199,25 @@ interface ImageJob {
   file: string
 }
 
+/** Von hier liefert die API ihre Bilder aus. Andere Hosts werden nicht angefragt. */
+const IMAGE_HOST = 'images.ygoprodeck.com'
+
+/**
+ * ID und URL kommen ungeprueft aus der API-Antwort. Die ID wird zum Dateinamen,
+ * darum muss sie eine Zahl sein - ein String wie "../../x" schriebe sonst
+ * ausserhalb von public/cards/. Die URL darf nur auf den Bilder-Host zeigen.
+ */
+function isSafeImage(id: unknown, url: unknown): boolean {
+  if (!Number.isInteger(id) || (id as number) <= 0) return false
+  if (typeof url !== 'string') return false
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' && parsed.hostname === IMAGE_HOST
+  } catch {
+    return false
+  }
+}
+
 /** Arbeitet die Liste mit fester Parallelitaet ab (kein Paket noetig). */
 async function downloadAll(jobs: ImageJob[]): Promise<void> {
   let index = 0
@@ -240,7 +259,7 @@ async function main(): Promise<void> {
       if (image.id !== card.id) aliases[String(image.id)] = card.id
     }
     // Nur das erste Artwork laden - mehr braucht die Deckansicht nicht.
-    if (images[0]) {
+    if (images[0] && isSafeImage(card.id, images[0].image_url_small)) {
       jobs.push({ url: images[0].image_url_small, file: path.join(IMAGE_DIR, `${card.id}.jpg`) })
     }
   }

@@ -29,8 +29,15 @@ export default function App() {
   // Ein geteilter Link schlägt das gespeicherte Deck — sonst würde man beim
   // Öffnen sein eigenes Deck sehen statt das, was einem geschickt wurde.
   const [deck, setDeck] = useState<Deck>(() => decodeDeck(location.hash) ?? loadDeck())
-  /** Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. */
-  const [hinweis, setHinweis] = useState<string | null>(null)
+  /**
+   * Letzte abgelehnte Aktion, damit der Nutzer den Grund sieht. Ein kaputter
+   * geteilter Link steht schon beim Start fest, darum gleich als Startwert.
+   */
+  const [hinweis, setHinweis] = useState<string | null>(() =>
+    location.hash !== '' && decodeDeck(location.hash) === null
+      ? 'Der geteilte Link enthielt kein gültiges Deck.'
+      : null,
+  )
   /**
    * Klick auf eine Suchkarte geht normalerweise in die natürliche Zone. Das
    * Side Deck ist so nie erreichbar — Drag & Drop kann es zwar, feuert aber
@@ -45,9 +52,6 @@ export default function App() {
   // wieder das geteilte Deck und wirft die eigenen Änderungen weg.
   useEffect(() => {
     if (location.hash === '') return
-    if (decodeDeck(location.hash) === null) {
-      setHinweis('Der geteilte Link enthielt kein gültiges Deck.')
-    }
     history.replaceState(null, '', location.pathname)
   }, [])
 
@@ -74,7 +78,11 @@ export default function App() {
     [deck, byId],
   )
 
-  const grid = useGridWindow(results.length)
+  // Ausgepackt statt grid.setContainer: oxlint hält sonst das ganze Objekt
+  // für einen Ref und warnt bei jedem Zugriff während des Renderns.
+  const { setContainer, columns, first, last, paddingTop, paddingBottom } = useGridWindow(
+    results.length,
+  )
 
   /** Jede Deckänderung geht hier durch, damit "rückgängig" immer greift. */
   const ändere = (next: Deck): void => {
@@ -221,16 +229,16 @@ export default function App() {
           </div>
 
           {/* Die Platzhalter halten die Scrollhöhe, obwohl nur der Sichtbereich im DOM liegt. */}
-          <div ref={grid.setContainer} className="mt-4">
-            <div style={{ height: grid.paddingTop }} />
+          <div ref={setContainer} className="mt-4">
+            <div style={{ height: paddingTop }} />
             <ul
               className="grid"
               style={{
-                gridTemplateColumns: `repeat(${String(grid.columns)}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${String(columns)}, minmax(0, 1fr))`,
                 gap: GAP,
               }}
             >
-              {results.slice(grid.first, grid.last).map((card) => (
+              {results.slice(first, last).map((card) => (
                 <li key={card.id}>
                   <button
                     type="button"
@@ -255,7 +263,7 @@ Klick fügt ${zielSide ? 'ins Side Deck' : 'in die passende Zone'} hinzu, Ziehen
                 </li>
               ))}
             </ul>
-            <div style={{ height: grid.paddingBottom }} />
+            <div style={{ height: paddingBottom }} />
           </div>
         </div>
 
