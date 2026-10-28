@@ -48,6 +48,10 @@ Starthand mit den exakt gerechneten Chancen:
 
 ## Einrichten
 
+Voraussetzung ist Node.js 22.18 oder neuer (siehe `.nvmrc`). Ältere Versionen
+können Vite nicht starten und die Tests nicht ausführen, die direkt als
+TypeScript laufen.
+
 ```bash
 npm install
 npm run cards
@@ -55,7 +59,8 @@ npm run dev
 ```
 
 `npm run cards` ist der einmalige Kartenimport (siehe unten). Ohne diesen
-Schritt startet die App zwar, hat aber keine Kartendaten.
+Schritt startet die App zwar, zeigt aber nur den Hinweis, dass die
+Kartendaten fehlen.
 
 Die Regeln des Deck-Editors und der `.ydk`-Umgang sind mit dem Testrunner von
 Node abgedeckt, ohne zusätzliches Testframework:
@@ -63,6 +68,20 @@ Node abgedeckt, ohne zusätzliches Testframework:
 ```bash
 npm test
 ```
+
+## Sicherheit
+
+- `npm audit` meldet keine bekannten Schwachstellen. Ein `npm install` braucht
+  keine Zugangsdaten und schreibt nur in `node_modules/`.
+- Die App hat kein Backend, keine Logins und speichert nichts ausserhalb des
+  Browsers. Alles, was von aussen kommt (geteilte Links, `.ydk`-Dateien,
+  `localStorage`), wird beim Einlesen geprüft und nie als HTML eingesetzt.
+- Der Kartenimport schreibt Bilder nur nach `public/cards/` und lädt sie nur von
+  `images.ygoprodeck.com`. Einträge der API mit ungültiger ID oder fremdem Host
+  überspringt er.
+- Auf Cloudflare setzt `public/_headers` eine Content-Security-Policy und
+  weitere Sicherheits-Header. Die Seite darf dann nur eigene Skripte laden und
+  Bilder nur von sich selbst und vom Bilder-Projekt.
 
 ## Kartenimport
 

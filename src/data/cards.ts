@@ -64,9 +64,12 @@ export function findCard(collection: CardCollection, id: number): Card | undefin
 /** Lädt die vom Import-Script erzeugte cards.json. Der einzige Netzwerkzugriff der App. */
 export async function loadCards(signal?: AbortSignal): Promise<CardCollection> {
   const res = await fetch(`${BASE}cards.json`, { signal })
-  if (!res.ok) {
+  // Fehlt die Datei, antwortet der Vite-Dev-Server nicht mit 404, sondern mit
+  // index.html und Status 200. Darum zählt auch der Inhaltstyp.
+  const isJson = res.headers.get('content-type')?.includes('json') ?? false
+  if (!res.ok || !isJson) {
     throw new Error(
-      `cards.json konnte nicht geladen werden (HTTP ${res.status}). Läuft "npm run cards"?`,
+      'Keine Kartendaten gefunden (public/cards.json fehlt). Einmal "npm run cards" ausführen und die Seite neu laden.',
     )
   }
   const db = (await res.json()) as CardDatabase
