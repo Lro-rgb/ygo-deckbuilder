@@ -52,15 +52,33 @@ Voraussetzung ist Node.js 22.18 oder neuer (siehe `.nvmrc`). Ältere Versionen
 können Vite nicht starten und die Tests nicht ausführen, die direkt als
 TypeScript laufen.
 
+### Schnellstart
+
+```bash
+npm install
+npm start
+```
+
+`npm start` holt nur die Kartendaten (ein Request, wenige Sekunden) und startet
+dann die App unter http://localhost:5173. Die Bilder kommen vom
+Cloudflare-Projekt des Deployments (siehe `.env.online`), es gibt also keinen
+400-MB-Download.
+
+### Komplett lokal
+
 ```bash
 npm install
 npm run cards
 npm run dev
 ```
 
-`npm run cards` ist der einmalige Kartenimport (siehe unten). Ohne diesen
-Schritt startet die App zwar, zeigt aber nur den Hinweis, dass die
-Kartendaten fehlen.
+`npm run cards` ist der einmalige Kartenimport mit allen ~14'000 Bildern
+(siehe unten), danach braucht die App kein Internet mehr. Ohne Kartenimport
+startet die App zwar, zeigt aber nur den Hinweis, dass die Kartendaten fehlen.
+
+Hinter einem Proxy (Schul- oder Firmennetz) nutzt Node ihn nur, wenn zusätzlich
+`NODE_USE_ENV_PROXY=1` gesetzt ist (ab Node 22.21). Sonst meldet der Import,
+dass `db.ygoprodeck.com` nicht erreichbar ist.
 
 Die Regeln des Deck-Editors und der `.ydk`-Umgang sind mit dem Testrunner von
 Node abgedeckt, ohne zusätzliches Testframework:

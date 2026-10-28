@@ -84,7 +84,18 @@ async function loadRawCards(): Promise<ApiCard[]> {
   }
 
   console.log('Lade Kartendaten von der API (ein Request, ~60 MB) ...')
-  const res = await fetch(API_URL)
+  let res: Response
+  try {
+    res = await fetch(API_URL)
+  } catch (err) {
+    // fetch meldet nur "fetch failed", der eigentliche Grund steckt in cause.
+    const cause = err instanceof Error && err.cause instanceof Error ? err.cause.message : String(err)
+    throw new Error(
+      `db.ygoprodeck.com ist nicht erreichbar (${cause}).\n` +
+        'Besteht eine Internetverbindung? Hinter einem Proxy (z.B. im Schul- oder Firmennetz)\n' +
+        'nutzt Node ihn nur mit NODE_USE_ENV_PROXY=1 (ab Node 22.21) und gesetztem HTTPS_PROXY.',
+    )
+  }
   if (!res.ok) throw new Error(`API antwortete mit ${res.status} ${res.statusText}`)
   const body = await res.text()
 
@@ -199,16 +210,15 @@ interface ImageJob {
   file: string
 }
 
+function isPasscode(id: unknown): id is number {
+  return Number.isInteger(id) && (id as number) > 0
+}
+
 /** Von hier liefert die API ihre Bilder aus. Andere Hosts werden nicht angefragt. */
 const IMAGE_HOST = 'images.ygoprodeck.com'
 
-/**
- * ID und URL kommen ungeprueft aus der API-Antwort. Die ID wird zum Dateinamen,
- * darum muss sie eine Zahl sein - ein String wie "../../x" schriebe sonst
- * ausserhalb von public/cards/. Die URL darf nur auf den Bilder-Host zeigen.
- */
-function isSafeImage(id: unknown, url: unknown): boolean {
-  if (!Number.isInteger(id) || (id as number) <= 0) return false
+/** Die Bild-URL kommt ungeprueft aus der API-Antwort und darf nur auf den Bilder-Host zeigen. */
+function isImageUrl(url: unknown): url is string {
   if (typeof url !== 'string') return false
   try {
     const parsed = new URL(url)
@@ -246,7 +256,12 @@ async function main(): Promise<void> {
   const raw = await loadRawCards()
   console.log(`API lieferte ${raw.length} Eintraege.`)
 
-  const playable = raw.filter((card) => !NOT_PLAYABLE.test(card.type)).slice(0, limit)
+  // Die ID wird zum Dateinamen der Bilder, darum muss sie eine Zahl sein - ein
+  // String wie "../../x" aus einer kaputten Antwort schriebe sonst ausserhalb
+  // von public/cards/.
+  const playable = raw
+    .filter((card) => isPasscode(card.id) && !NOT_PLAYABLE.test(card.type))
+    .slice(0, limit)
   const cards = playable.map(toCard)
 
   // Alternative Artworks tauchen als eigene Passcodes auf, sind aber dieselbe Karte.
@@ -256,10 +271,10 @@ async function main(): Promise<void> {
   for (const card of playable) {
     const images = card.card_images ?? []
     for (const image of images) {
-      if (image.id !== card.id) aliases[String(image.id)] = card.id
+      if (isPasscode(image.id) && image.id !== card.id) aliases[String(image.id)] = card.id
     }
     // Nur das erste Artwork laden - mehr braucht die Deckansicht nicht.
-    if (images[0] && isSafeImage(card.id, images[0].image_url_small)) {
+    if (images[0] && isImageUrl(images[0].image_url_small)) {
       jobs.push({ url: images[0].image_url_small, file: path.join(IMAGE_DIR, `${card.id}.jpg`) })
     }
   }
